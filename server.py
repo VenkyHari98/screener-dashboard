@@ -87,14 +87,29 @@ def parse_output(raw, scan_type):
     lines_parsed = 0
     errors = []
     
+    # Log first 30 lines for debugging
+    first_lines = raw.split("\n")[:30]
+    log_event("DEBUG", f"PKScreener output first 30 lines:", "\n".join(first_lines[:5]))
+    
     for line_num, line in enumerate(raw.split("\n"), 1):
         stripped = line.strip()
         if not stripped:
             continue
+        
+        # Debug: log first 10 non-empty lines
+        if line_num <= 10:
+            log_event("DEBUG", f"Line {line_num}: {stripped[:100]}")
+        
         parts = re.split(r'\s{2,}|\t', stripped)
         if len(parts) < 6:
             continue
+        
         symbol = parts[0].strip()
+        
+        # Debug symbol extraction
+        if line_num <= 10 and symbol:
+            log_event("DEBUG", f"Extracted symbol '{symbol}'", f"Full parts: {parts[:3]}")
+        
         if not re.match(r'^[A-Z&]{2,20}$', symbol):
             continue
         if symbol in ('STOCK','SYMBOL','NAME','SCRIP'):
@@ -121,7 +136,7 @@ def parse_output(raw, scan_type):
             errors.append(f"Line {line_num}: {str(e)}")
             continue
     
-    log_event("INFO", f"Parsed output", f"Found {len(stocks)} stocks from {lines_parsed} lines. Errors: {len(errors)}")
+    log_event("INFO", f"Parse result", f"Found {len(stocks)} stocks from {lines_parsed} matching lines. Total lines: {len(raw.split(chr(10)))}")
     if errors and len(stocks) == 0:
         log_event("WARN", "Parse errors occurred", "; ".join(errors[:5]))
     
@@ -164,7 +179,8 @@ class Handler(BaseHTTPRequestHandler):
                 "watch_count":len([s for s in stocks if s["signal"]=="WATCH"]),
                 "avoid_count":len([s for s in stocks if s["signal"]=="AVOID"]),
                 "errors": [l for l in LOGS if l["level"] in ("ERROR", "WARN")],
-                "debug": raw[:500] if raw else "No output from PKScreener",
+                "debug_output": raw[:1500] if raw else "No output from PKScreener",
+                "all_logs": LOGS[-10:],
             }
 
             body = json.dumps(result).encode()

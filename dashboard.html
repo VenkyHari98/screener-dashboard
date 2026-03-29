@@ -211,9 +211,12 @@
 </div>
 
 <!-- ERROR BANNER -->
-<div id="errorBanner" style="display:none;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;padding:12px 16px;margin:0;color:#ef4444;font-size:12px;font-family:var(--font-mono);line-height:1.6;">
+<div id="errorBanner" style="display:none;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;padding:12px 16px;margin:0;color:#ef4444;font-size:12px;font-family:var(--font-mono);line-height:1.6;max-height:300px;overflow-y:auto;">
   <strong style="color:#ef4444">⚠ Error/Warning:</strong> <span id="errorMsg"></span>
-  <div style="margin-top:6px;font-size:11px;opacity:0.8;">Debug: <span id="debugMsg" style="color:#999;"></span></div>
+  <div style="margin-top:8px;font-size:10px;opacity:0.7;"><strong>Debug Output (first 500 chars):</strong></div>
+  <div id="debugMsg" style="color:#999;font-size:10px;background:rgba(0,0,0,0.2);padding:8px;border-radius:4px;margin-top:4px;white-space:pre-wrap;word-break:break-all;"></div>
+  <div style="margin-top:8px;font-size:10px;opacity:0.7;"><strong>Server Logs:</strong></div>
+  <div id="serverLogs" style="color:#999;font-size:9px;background:rgba(0,0,0,0.2);padding:8px;border-radius:4px;margin-top:4px;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;"></div>
 </div>
 
 <div class="page">
@@ -609,7 +612,7 @@ function runScan() {
         data=d.stocks||[]; 
         render(data); 
         setMeta(d);
-        showErrors(d.errors, d.debug);
+        showErrors(d.errors, d.debug_output, d.all_logs);
       })
       .catch((err)=>{ 
         showError("Local server connection failed: " + err.message);
@@ -657,26 +660,42 @@ function showError(msg) {
   banner.style.display = 'block';
 }
 
-function showErrors(errors, debug) {
+function showErrors(errors, debug, allLogs) {
   const banner = document.getElementById('errorBanner');
-  if(!errors || errors.length === 0) {
-    banner.style.display = 'none';
-    return;
-  }
-  
   const msgEl = document.getElementById('errorMsg');
   const debugEl = document.getElementById('debugMsg');
-  const errorMsgs = errors.map(e => (e.level === 'ERROR' ? '❌ ' : '⚠ ') + e.message).join('; ');
-  msgEl.textContent = errorMsgs;
+  const logsEl = document.getElementById('serverLogs');
   
-  if(debug) {
-    let debugText = debug;
-    if(debugText.length > 200) debugText = debugText.substring(0, 200) + '...';
-    debugEl.textContent = debugText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Show banner if there are errors OR if we got no stocks (likely a problem)
+  if(!errors || errors.length === 0) {
+    // Still show if no stocks were found
+    if(data.length === 0) {
+      msgEl.textContent = '⚠ No stocks found in results (check debug output below)';
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+      return;
+    }
+  } else {
+    const errorMsgs = errors.map(e => (e.level === 'ERROR' ? '❌ ' : '⚠ ') + e.message).join('\n');
+    msgEl.textContent = errorMsgs;
+    banner.style.display = 'block';
   }
   
-  banner.style.display = 'block';
+  // Show PKScreener raw output
+  if(debug) {
+    debugEl.textContent = debug.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  
+  // Show recent server logs
+  if(allLogs && allLogs.length > 0) {
+    const logText = allLogs.map(l => `[${l.timestamp}] ${l.level}: ${l.message}${l.details ? ' → ' + l.details : ''}`).join('\n');
+    logsEl.textContent = logText;
+  }
+  
   console.log('Errors/Warnings:', errors);
+  console.log('Debug output:', debug);
+  console.log('Server logs:', allLogs);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
