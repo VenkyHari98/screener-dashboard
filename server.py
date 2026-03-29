@@ -23,6 +23,28 @@ from datetime import datetime, timezone, timedelta
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
+# Global error log storage
+LOGS = []
+MAX_LOGS = 100
+
+def log_event(level, message, details=""):
+    """Log events to both console and memory."""
+    now = datetime.now(IST).strftime("%H:%M:%S")
+    log_entry = {
+        "timestamp": now,
+        "level": level,
+        "message": message,
+        "details": details
+    }
+    LOGS.append(log_entry)
+    if len(LOGS) > MAX_LOGS:
+        LOGS.pop(0)
+    
+    prefix = f"[{level}]" if level != "INFO" else "[+]"
+    print(f"{prefix} {message}", file=sys.stderr if level == "ERROR" else sys.stdout)
+    if details:
+        print(f"    {details}", file=sys.stderr if level == "ERROR" else sys.stdout)
+
 def get_market_data():
     try:
         import yfinance as yf
@@ -39,20 +61,33 @@ def get_market_data():
 
 def run_pkscreener(index, scan):
     option = f"X:{index}:{scan}"
-    print(f"[+] Running PKScreener: {option}")
+    log_event("INFO", f"Running PKScreener scan: {option}")
     try:
         result = subprocess.run(
             [sys.executable, "-m", "pkscreener.pkscreenercli", "--testbuild", "-o", option, "-a", "Y"],
             capture_output=True, text=True, timeout=300
         )
-        return result.stdout + result.stderr
+        output = result.stdout + result.stderr
+        if result.returncode != 0:
+            log_event("WARN", f"PKScreener returned non-zero exit code: {result.returncode}")
+        if output:
+            log_event("INFO", f"PKScreener output received ({len(output)} bytes)")
+        else:
+            log_event("WARN", "PKScreener returned empty output")
+        return output
+    except subprocess.TimeoutExpired:
+        log_event("ERROR", "PKScreener scan timed out", "Timeout after 300 seconds")
+        return ""
     except Exception as e:
-        print(f"[!] Error: {e}")
+        log_event("ERROR", "PKScreener execution failed", str(e))
         return ""
 
 def parse_output(raw, scan_type):
     stocks = []
-    for line in raw.split("\n"):
+    lines_parsed = 0
+    errors = []
+    
+    for line_num, line in enumerate(raw.split("\n"), 1):
         stripped = line.strip()
         if not stripped:
             continue
@@ -81,8 +116,15 @@ def parse_output(raw, scan_type):
                 "rsi": round(rsi,1), "pattern": scan_type,
                 "signal": signal, "d1": d1, "d2": d2, "scan": scan_type,
             })
-        except (ValueError, IndexError):
+            lines_parsed += 1
+        except (ValueError, IndexError) as e:
+            errors.append(f"Line {line_num}: {str(e)}")
             continue
+    
+    log_event("INFO", f"Parsed output", f"Found {len(stocks)} stocks from {lines_parsed} lines. Errors: {len(errors)}")
+    if errors and len(stocks) == 0:
+        log_event("WARN", "Parse errors occurred", "; ".join(errors[:5]))
+    
     return stocks
 
 class Handler(BaseHTTPRequestHandler):
@@ -121,6 +163,8 @@ class Handler(BaseHTTPRequestHandler):
                 "buy_count": len([s for s in stocks if s["signal"]=="BUY"]),
                 "watch_count":len([s for s in stocks if s["signal"]=="WATCH"]),
                 "avoid_count":len([s for s in stocks if s["signal"]=="AVOID"]),
+                "errors": [l for l in LOGS if l["level"] in ("ERROR", "WARN")],
+                "debug": raw[:500] if raw else "No output from PKScreener",
             }
 
             body = json.dumps(result).encode()
@@ -131,12 +175,13 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
 
-        elif parsed.path == '/health':
+        elif parsed.path == '/logs':
+            body = json.dumps({"logs": LOGS}).encode()
             self.send_response(200)
             self.send_header('Content-Type','application/json')
             self.send_header('Access-Control-Allow-Origin','*')
             self.end_headers()
-            self.wfile.write(json.dumps({"status":"ok","mode":"local"}).encode())
+            self.wfile.write(body)
 
         elif parsed.path in ('/', '/dashboard.html'):
             html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard.html')
