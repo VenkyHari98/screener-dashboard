@@ -71,8 +71,8 @@ window.addEventListener('DOMContentLoaded', function() {{
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"[+] Injected {LIVE_DATA['total']} stocks into {OUTPUT_FILE}")
-    print(f"[+] Session: {LIVE_DATA['session']} | {LIVE_DATA['timestamp']}")
+    print(f"[+] Injected {data['total']} stocks into {OUTPUT_FILE}")
+    print(f"[+] Session: {data['session']} | {data['timestamp']}")
 
 if __name__ == "__main__":
     main()
