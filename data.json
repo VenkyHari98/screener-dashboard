@@ -1,1 +1,38 @@
-{"stocks": [], "total": 0, "buy_count": 0, "watch_count": 0, "avoid_count": 0, "timestamp": "Pending first scan", "date": "", "session": "", "scan_summary": [], "market": {"nifty": 0, "niftyChg": 0, "sensex": 0, "sensexChg": 0}}
+{
+  "timestamp": "29 Mar 2026 12:46 PM IST",
+  "date": "2026-03-29",
+  "session": "Post-Market",
+  "market": {
+    "nifty": 22819.6,
+    "niftyChg": -2.1,
+    "sensex": 73583.22,
+    "sensexChg": -2.25
+  },
+  "scan_summary": [
+    {
+      "label": "Breakout Stocks",
+      "type": "BREAKOUT",
+      "count": 0
+    },
+    {
+      "label": "5 EMA Intraday",
+      "type": "EMA",
+      "count": 0
+    },
+    {
+      "label": "Confluence BTST",
+      "type": "BTST",
+      "count": 0
+    },
+    {
+      "label": "Volume Surge",
+      "type": "VOLUME",
+      "count": 0
+    }
+  ],
+  "stocks": [],
+  "total": 0,
+  "buy_count": 0,
+  "watch_count": 0,
+  "avoid_count": 0
+}
