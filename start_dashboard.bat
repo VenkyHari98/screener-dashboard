@@ -9,18 +9,32 @@ echo.
 
 cd /d "%~dp0"
 
-:: Check Python
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] Python not found. Install Python 3.8+ and add to PATH.
-    pause
-    exit /b 1
+:: Resolve Python interpreter (prefer 3.11 because pkscreener is installed there)
+set "PYTHON_EXE="
+py -3.11 -c "import sys; print(sys.version)" >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_EXE=py -3.11"
+) else (
+    py -3 -c "import sys; print(sys.version)" >nul 2>&1
+    if not errorlevel 1 (
+        set "PYTHON_EXE=py -3"
+    ) else (
+        python --version >nul 2>&1
+        if errorlevel 1 (
+            echo [ERROR] Python not found. Install Python 3.11+ and add to PATH.
+            pause
+            exit /b 1
+        )
+        set "PYTHON_EXE=python"
+    )
 )
+
+echo [+] Using interpreter: %PYTHON_EXE%
 
 :: Install dependencies if needed
 echo [+] Checking dependencies...
-pip install yfinance --quiet 2>nul
-pip install pkscreener --quiet 2>nul
+%PYTHON_EXE% -m pip install yfinance --quiet 2>nul
+%PYTHON_EXE% -m pip install pkscreener --quiet 2>nul
 
 :: Start server once (foreground) and open browser after a short delay.
 echo [+] Starting local server on http://localhost:5000 ...
@@ -31,4 +45,4 @@ echo  Dashboard is running at http://localhost:5000/
 echo  Press Ctrl+C in this window to stop.
 echo.
 
-python server.py
+%PYTHON_EXE% server.py
