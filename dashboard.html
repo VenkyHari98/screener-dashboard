@@ -326,6 +326,7 @@
     <button class="run" id="runBtn" onclick="runScan()">▶ Run Scan</button>
     <button class="ghost" id="ghBtn" style="display:none" onclick="triggerGitHub()">⬆ Trigger GitHub Scan</button>
     <button class="ghost" onclick="loadSample()">⟳ Load Sample Data</button>
+    <div id="scanStatus" style="margin-top:8px;font-size:11px;font-family:var(--font-mono);min-height:16px;"></div>
 
     <hr class="div">
 
@@ -599,11 +600,20 @@ function render(rows) {
 }
 
 // ── SCAN ──────────────────────────────────────────────────────────────────────
+function setScanStatus(state, msg) {
+  const el = document.getElementById('scanStatus');
+  if (!el) return;
+  const colors = { running: '#f59e0b', completed: '#22c55e', failed: '#ef4444', idle: 'var(--text3)' };
+  el.style.color = colors[state] || 'var(--text3)';
+  el.textContent = msg;
+}
+
 function runScan() {
   if(isLocal) {
     // Local mode: try to fetch from local Python server
     const btn = document.getElementById('runBtn');
     btn.textContent='⏳ Scanning...'; btn.disabled=true;
+    setScanStatus('running', '⏳ Scan running...');
     const idx = document.getElementById('idxSel').value;
     const scn = document.getElementById('scnSel').value;
     fetch(`http://localhost:5000/scan?index=${idx}&scan=${scn}`)
@@ -619,8 +629,11 @@ function runScan() {
         render(data); 
         setMeta(d);
         showErrors(d.errors, d.debug_output, d.all_logs);
+        const t = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        setScanStatus('completed', `✔ Completed at ${t} · ${data.length} stocks found`);
       })
       .catch((err)=>{ 
+        setScanStatus('failed', '✘ ' + err.message);
         showError("Local server connection failed: " + err.message);
         loadSample(); 
         alert('Local server not running.\nStart it with: python server.py\n\nShowing sample data instead.'); 

@@ -36,6 +36,26 @@ echo [+] Checking dependencies...
 %PYTHON_EXE% -m pip install yfinance --quiet 2>nul
 %PYTHON_EXE% -m pip install pkscreener --quiet 2>nul
 
+:: Pre-flight checks
+echo.
+echo [+] Running pre-flight checks...
+
+%PYTHON_EXE% -c "import pkscreener" >nul 2>&1
+if errorlevel 1 (
+    echo [WARN] pkscreener not importable with %PYTHON_EXE% — scans may fail.
+) else (
+    echo [OK]  pkscreener importable.
+)
+
+netstat -ano | findstr ":5000 " >nul 2>&1
+if not errorlevel 1 (
+    echo [WARN] Port 5000 already in use — server may fail to start.
+) else (
+    echo [OK]  Port 5000 is free.
+)
+
+echo.
+
 :: Start server once (foreground) and open browser after a short delay.
 echo [+] Starting local server on http://localhost:5000 ...
 start "" cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:5000/"

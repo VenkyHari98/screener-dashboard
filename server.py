@@ -29,6 +29,14 @@ LOGS = []
 MAX_LOGS = 100
 SCAN_LOCK = threading.Lock()
 
+SCAN_STATE = {
+    "status": "idle",   # idle | running | completed | failed
+    "started": None,
+    "completed": None,
+    "error": None,
+    "stocks_found": 0,
+}
+
 
 class ThreadingHTTPServer(HTTPServer):
     daemon_threads = True
@@ -94,7 +102,8 @@ def run_pkscreener(index, scan):
     
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pkscreener.pkscreenercli", "--testbuild", "-o", option, "-a", "Y"],
+            ["py", "-3.11", "-m", "pkscreener.pkscreenercli",
+             "--testbuild", "--systemlaunched", "-e", "-o", option, "-a", "Y"],
             capture_output=True, text=True, timeout=120, cwd=os.path.dirname(os.path.abspath(__file__))
         )
         output = result.stdout + result.stderr
@@ -208,11 +217,13 @@ class Handler(BaseHTTPRequestHandler):
             }
             scan_type = scan_map.get(scan, 'SCAN')
 
+            SCAN_STATE.update({"status": "running", "started": datetime.now(IST).strftime("%H:%M:%S"), "completed": None, "error": None, "stocks_found": 0})
             try:
                 raw    = run_pkscreener(index, scan)
                 stocks = parse_output(raw, scan_type)
                 market = get_market_data()
                 now    = datetime.now(IST)
+                SCAN_STATE.update({"status": "completed", "completed": now.strftime("%H:%M:%S"), "stocks_found": len(stocks)})
 
                 result = {
                     "timestamp": now.strftime("%d %b %Y %I:%M %p IST"),
@@ -235,8 +246,35 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
+            except Exception as scan_err:
+                SCAN_STATE.update({"status": "failed", "error": str(scan_err), "completed": datetime.now(IST).strftime("%H:%M:%S")})
+                raise
             finally:
                 SCAN_LOCK.release()
+
+        elif parsed.path == '/health':
+            body = json.dumps({
+                "status": "ok",
+                "scan_state": SCAN_STATE["status"],
+                "scan_started": SCAN_STATE["started"],
+                "scan_completed": SCAN_STATE["completed"],
+                "stocks_found": SCAN_STATE["stocks_found"],
+            }).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        elif parsed.path == '/status':
+            body = json.dumps(SCAN_STATE).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
 
         elif parsed.path == '/logs':
             body = json.dumps({"logs": LOGS}).encode()
