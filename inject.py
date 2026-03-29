@@ -65,8 +65,8 @@ window.addEventListener('DOMContentLoaded', function() {{
 """
 
     # Insert injection just before the closing </script> tag at the end
-    html = html.replace("// ─── INIT ─────────────────────────────────────────────────────────────────────",
-                        injection + "\n// ─── INIT ─────────────────────────────────────────────────────────────────────")
+    html = html.replace("// ── INIT ──────────────────────────────────────────────────────────────────────",
+                        injection + "\n// ── INIT ──────────────────────────────────────────────────────────────────────")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(html)

@@ -436,9 +436,33 @@ function detectMode() {
     txt.textContent  = '☁ GitHub Pages mode — scans run via GitHub Actions (2 automated daily)';
     hint.textContent = 'github.io';
     ghBtn.style.display  = 'block';
-    runBtn.textContent   = '▶ Preview with Sample';
     footer.textContent   = 'GitHub Pages · Auto-scans: 8:30 AM & 3:45 PM IST (Mon–Fri)';
+    // Auto-load latest scan data from committed data.json
+    loadLiveData();
   }
+}
+
+function loadLiveData() {
+  const btn = document.getElementById('runBtn');
+  btn.textContent = '⏳ Loading...';
+  btn.disabled = true;
+  fetch('./data.json?_=' + Date.now())
+    .then(r => r.json())
+    .then(d => {
+      if (d.stocks && d.stocks.length > 0) {
+        data = d.stocks;
+        render(data);
+        setMeta(d);
+        document.getElementById('scanTag') && (document.getElementById('scanTag').textContent =
+          (d.scan_summary||[]).map(s => s.label + ' (' + s.count + ')').join(' · '));
+        document.getElementById('resultsMeta') && (document.getElementById('resultsMeta').textContent =
+          d.total + ' stocks · ' + d.date);
+      } else {
+        loadSample();
+      }
+    })
+    .catch(() => { loadSample(); })
+    .finally(() => { btn.textContent = '▶ Run Scan'; btn.disabled = false; });
 }
 
 // ── SKILL LEVEL ───────────────────────────────────────────────────────────────
@@ -579,8 +603,7 @@ function runScan() {
       .catch(()=>{ loadSample(); alert('Local server not running.\nStart it with: python server.py\n\nShowing sample data instead.'); })
       .finally(()=>{ btn.innerHTML='▶ Run Scan'; btn.disabled=false; });
   } else {
-    loadSample();
-    document.getElementById('stag').textContent='Sample data';
+    loadLiveData();
   }
 }
 
