@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install yfinance
+          pip install yfinance pkscreener
 
       - name: Run PKScreener scans
         run: python scan.py
@@ -34,24 +34,15 @@ jobs:
 
       - name: Commit and push updated dashboard
         run: |
-          git config user.name  "PKScreener Bot"
+          git config user.name "PKScreener Bot"
           git config user.email "pkscreener-bot@github-actions"
           git add data.json dashboard.html
           git diff --staged --quiet || git commit -m "Auto scan: $(date +'%d %b %Y %H:%M IST')"
           git push
 ```
 
-**4.** Scroll down → click **"Commit changes"** → click **"Commit changes"** again in the popup
+Commit it → then click the failed run → **Re-run jobs** to test.
 
----
-
-## Verify It Worked
-
-After committing, click on your repo name to go back to the root. You should now see:
+Also — your GitHub Pages is already live! Open this URL right now:
 ```
-📁 .github
-📄 README.md
-📄 dashboard.html
-📄 data.json
-📄 inject.py
-📄 scan.py
+https://VenkyHari98.github.io/screener-dashboard/dashboard.html
