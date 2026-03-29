@@ -3,1296 +3,618 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PKScreener Dashboard — NSE Stock Screener</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>India Stock Screener</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0e1a;
-    --surface: #111827;
-    --surface2: #1a2235;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.13);
-    --accent: #00d4aa;
-    --accent2: #f59e0b;
-    --accent3: #ef4444;
-    --accent4: #6366f1;
-    --text: #f1f5f9;
-    --text2: #94a3b8;
-    --text3: #475569;
-    --bull: #10b981;
-    --bear: #ef4444;
-    --neutral: #f59e0b;
-    --font-head: 'Syne', sans-serif;
-    --font-mono: 'DM Mono', monospace;
-    --font-body: 'DM Sans', sans-serif;
+    --bg:         #0d1117;
+    --bg2:        #141b26;
+    --surface:    #1a2333;
+    --surface2:   #1f2b3e;
+    --surface3:   #243148;
+    --orange:     #e8600a;
+    --orange-lt:  #f07c2e;
+    --orange-dim: rgba(232,96,10,0.13);
+    --orange-glow:rgba(232,96,10,0.07);
+    --red-acc:    #d04a02;
+    --bull:       #22c55e;
+    --bull-dim:   rgba(34,197,94,0.12);
+    --bear:       #ef4444;
+    --bear-dim:   rgba(239,68,68,0.12);
+    --warn:       #f59e0b;
+    --warn-dim:   rgba(245,158,11,0.12);
+    --info:       #38bdf8;
+    --text:       #f0f4f8;
+    --text2:      #8899aa;
+    --text3:      #4a5a6a;
+    --border:     rgba(255,255,255,0.06);
+    --border2:    rgba(255,255,255,0.11);
+    --border-o:   rgba(232,96,10,0.28);
+    --font-head:  'Playfair Display', Georgia, serif;
+    --font-body:  'IBM Plex Sans', sans-serif;
+    --font-mono:  'IBM Plex Mono', monospace;
   }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.5;min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(232,96,10,0.018) 40px,rgba(232,96,10,0.018) 41px);pointer-events:none;z-index:0}
+  body::after{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red-acc),var(--orange),var(--orange-lt));z-index:100}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  .page{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:0 28px 80px}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Background grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
+  /* MODE BANNER */
+  #modeBanner{display:flex;align-items:center;gap:10px;padding:8px 16px;font-size:11px;font-family:var(--font-mono);border-bottom:1px solid var(--border);margin-bottom:0}
+  #modeBanner.local{background:rgba(34,197,94,0.07);color:var(--bull);border-color:rgba(34,197,94,0.2)}
+  #modeBanner.remote{background:rgba(232,96,10,0.07);color:var(--orange-lt);border-color:var(--border-o)}
+  .mode-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .local .mode-dot{background:var(--bull);box-shadow:0 0 8px var(--bull);animation:blink 2s infinite}
+  .remote .mode-dot{background:var(--orange)}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
   /* HEADER */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 28px 0 32px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 32px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
+  header{padding:28px 0 24px;border-bottom:1px solid var(--border);margin-bottom:26px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:18px}
+  .brand-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--orange);margin-bottom:5px}
+  .brand-title{font-family:var(--font-head);font-size:34px;font-weight:700;letter-spacing:-0.5px;line-height:1.1;color:var(--text)}
+  .brand-title span{color:var(--orange)}
+  .brand-sub{font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:4px}
 
-  .logo-block { display: flex; align-items: center; gap: 14px; }
+  .mpill{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:16px}
+  .mpill-div{width:1px;height:34px;background:var(--border2)}
+  .mpill-name{font-size:9px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px}
+  .mpill-val{font-size:17px;font-weight:500;color:var(--text);font-family:var(--font-mono);margin:2px 0}
+  .mpill-chg{font-size:11px;font-family:var(--font-mono)}
+  .up{color:var(--bull)} .dn{color:var(--bear)}
 
-  .logo-icon {
-    width: 44px; height: 44px;
-    background: linear-gradient(135deg, var(--accent), var(--accent4));
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-head);
-    font-weight: 800;
-    font-size: 18px;
-    color: #fff;
-    flex-shrink: 0;
-  }
+  /* METRICS */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .mc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s,transform .15s}
+  .mc:hover{border-color:var(--border2);transform:translateY(-1px)}
+  .mc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+  .mc.buy::after{background:var(--bull)} .mc.watch::after{background:var(--warn)} .mc.avoid::after{background:var(--bear)} .mc.total::after{background:var(--orange)}
+  .mc-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono);margin-bottom:8px}
+  .mc-val{font-family:var(--font-head);font-size:32px;font-weight:700;line-height:1;margin-bottom:4px}
+  .mc-sub{font-size:11px;color:var(--text2);font-family:var(--font-mono)}
+  .mc.buy .mc-val{color:var(--bull)} .mc.watch .mc-val{color:var(--warn)} .mc.avoid .mc-val{color:var(--bear)} .mc.total .mc-val{color:var(--orange)}
 
-  .logo-text h1 {
-    font-family: var(--font-head);
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--text);
-  }
+  /* LAYOUT */
+  .layout{display:grid;grid-template-columns:285px 1fr;gap:20px;align-items:start}
 
-  .logo-text p {
-    font-size: 12px;
-    color: var(--text2);
-    font-family: var(--font-mono);
-    margin-top: 1px;
-  }
+  /* PANEL */
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;position:sticky;top:20px}
+  .panel-hd{font-family:var(--font-head);font-size:15px;font-weight:600;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+  .panel-hd::before{content:'';width:3px;height:16px;background:var(--orange);border-radius:2px;flex-shrink:0}
+  .cg{margin-bottom:18px}
+  .clbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .tip{width:15px;height:15px;background:var(--surface2);border:1px solid var(--border2);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--text2);cursor:help;position:relative;flex-shrink:0;font-family:var(--font-body)}
+  .tip:hover::after{content:attr(data-tip);position:absolute;left:20px;top:-6px;background:var(--surface3);border:1px solid var(--border-o);color:var(--text);font-size:11px;font-family:var(--font-body);padding:10px 13px;border-radius:8px;width:210px;z-index:200;line-height:1.55;text-transform:none;letter-spacing:0;font-weight:400;box-shadow:0 12px 32px rgba(0,0,0,.5);pointer-events:none}
 
-  .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238899aa' d='M5 7L0 2h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer;transition:border-color .2s}
+  select:focus{border-color:var(--orange)}
+  .sv{font-family:var(--font-mono);font-size:13px;color:var(--orange);font-weight:500;text-align:right;margin-bottom:6px}
+  input[type=range]{width:100%;height:3px;background:var(--surface3);border-radius:2px;outline:none;appearance:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px rgba(232,96,10,.5);cursor:pointer}
+  .se{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:5px}
+  .tr{display:flex;gap:6px;flex-wrap:wrap}
+  .tb{padding:6px 11px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-family:var(--font-body);cursor:pointer;transition:all .15s}
+  .tb:hover{border-color:var(--orange);color:var(--orange-lt)}
+  .tb.on{background:var(--orange-dim);border-color:var(--orange);color:var(--orange-lt)}
+  .div{border:none;border-top:1px solid var(--border);margin:18px 0}
+  .run{width:100%;padding:12px;background:var(--orange);border:none;border-radius:8px;color:#fff;font-family:var(--font-head);font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .run:hover{background:var(--orange-lt)} .run:active{transform:scale(.98)} .run:disabled{opacity:.5;cursor:not-allowed}
+  .ghost{width:100%;padding:9px;background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all .15s;margin-top:8px}
+  .ghost:hover{border-color:var(--orange);color:var(--orange-lt)}
 
-  .market-pill {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
+  /* SKILL */
+  .skill-bar{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:20px;flex-wrap:wrap}
+  .sbl{font-size:11px;color:var(--text2);font-family:var(--font-mono)}
+  .sbs{display:flex;gap:5px;margin-left:auto}
+  .sb{padding:4px 11px;border-radius:5px;border:1px solid var(--border2);background:transparent;font-size:11px;font-family:var(--font-body);cursor:pointer;color:var(--text2);transition:all .15s}
+  .sb.on.beg{background:var(--bull-dim);border-color:var(--bull);color:var(--bull)}
+  .sb.on.mid{background:var(--warn-dim);border-color:var(--warn);color:var(--warn)}
+  .sb.on.adv{background:var(--orange-dim);border-color:var(--orange);color:var(--orange-lt)}
+  .eb{background:var(--orange-glow);border:1px solid var(--border-o);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:18px;display:none}
+  .eb.on{display:block} .eb strong{color:var(--orange-lt)}
 
-  .market-pill .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--bull);
-    box-shadow: 0 0 8px var(--bull);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  .market-val { color: var(--bull); font-weight: 500; }
-  .market-name { color: var(--text2); }
-
-  .last-updated {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: var(--font-mono);
-  }
-
-  /* METRICS ROW */
-  .metrics-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 28px;
-  }
-
-  .metric-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-
-  .metric-card:hover { border-color: var(--border2); }
-
-  .metric-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-
-  .metric-card.green::before { background: var(--bull); }
-  .metric-card.amber::before { background: var(--neutral); }
-  .metric-card.red::before { background: var(--bear); }
-  .metric-card.indigo::before { background: var(--accent4); }
-
-  .metric-label {
-    font-size: 11px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    font-family: var(--font-mono);
-    margin-bottom: 8px;
-  }
-
-  .metric-value {
-    font-size: 28px;
-    font-family: var(--font-head);
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .metric-sub {
-    font-size: 12px;
-    color: var(--text2);
-    font-family: var(--font-mono);
-  }
-
-  .metric-card.green .metric-value { color: var(--bull); }
-  .metric-card.amber .metric-value { color: var(--neutral); }
-  .metric-card.red .metric-value { color: var(--bear); }
-  .metric-card.indigo .metric-value { color: var(--accent4); }
-
-  /* MAIN LAYOUT */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 20px;
-    align-items: start;
-  }
-
-  /* CONTROL PANEL */
-  .control-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    position: sticky;
-    top: 20px;
-  }
-
-  .panel-title {
-    font-family: var(--font-head);
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .panel-title .icon {
-    width: 24px; height: 24px;
-    background: rgba(0,212,170,0.12);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-  }
-
-  .control-group { margin-bottom: 20px; }
-
-  .control-label {
-    font-size: 11px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    font-family: var(--font-mono);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .tooltip-icon {
-    width: 14px; height: 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    color: var(--text2);
-    cursor: help;
-    position: relative;
-  }
-
-  .tooltip-icon:hover::after {
-    content: attr(data-tip);
-    position: absolute;
-    left: 20px;
-    top: -4px;
-    background: #1e293b;
-    border: 1px solid var(--border2);
-    color: var(--text);
-    font-size: 11px;
-    font-family: var(--font-body);
-    padding: 8px 12px;
-    border-radius: 8px;
-    width: 200px;
-    z-index: 100;
-    line-height: 1.5;
-    text-transform: none;
-    letter-spacing: 0;
-    font-weight: 400;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-
-  select {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 13px;
-    padding: 9px 12px;
-    outline: none;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    transition: border-color 0.2s;
-  }
-
-  select:hover, select:focus { border-color: var(--accent); }
-
-  .slider-wrap { padding: 4px 0; }
-
-  input[type=range] {
-    width: 100%;
-    height: 4px;
-    background: var(--surface2);
-    border-radius: 2px;
-    outline: none;
-    appearance: none;
-    cursor: pointer;
-  }
-
-  input[type=range]::-webkit-slider-thumb {
-    appearance: none;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px rgba(0,212,170,0.4);
-    cursor: pointer;
-  }
-
-  .slider-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    color: var(--text3);
-    font-family: var(--font-mono);
-    margin-top: 6px;
-  }
-
-  .slider-val {
-    font-size: 13px;
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-weight: 500;
-    text-align: right;
-    margin-bottom: 6px;
-  }
-
-  .toggle-group {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .toggle-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border2);
-    background: transparent;
-    color: var(--text2);
-    font-size: 12px;
-    font-family: var(--font-body);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .toggle-btn.active {
-    background: rgba(0,212,170,0.12);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  .run-btn {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--accent), #00a88a);
-    border: none;
-    border-radius: 10px;
-    color: #0a0e1a;
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: opacity 0.2s, transform 0.1s;
-    letter-spacing: 0.3px;
-  }
-
-  .run-btn:hover { opacity: 0.9; }
-  .run-btn:active { transform: scale(0.98); }
-
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 20px 0;
-  }
-
-  .skill-selector { margin-bottom: 6px; }
-
-  .skill-label {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: var(--font-mono);
-    margin-bottom: 6px;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .skill-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-family: var(--font-mono);
-    font-weight: 500;
-  }
-
-  .skill-badge.beginner { background: rgba(16,185,129,0.15); color: var(--bull); }
-  .skill-badge.intermediate { background: rgba(245,158,11,0.15); color: var(--neutral); }
-  .skill-badge.advanced { background: rgba(99,102,241,0.15); color: var(--accent4); }
-
-  /* RESULTS PANEL */
-  .results-panel { display: flex; flex-direction: column; gap: 20px; }
-
-  .results-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .results-title {
-    font-family: var(--font-head);
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .results-meta {
-    font-size: 12px;
-    color: var(--text2);
-    font-family: var(--font-mono);
-  }
-
-  .filter-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .filter-chip {
-    padding: 5px 12px;
-    border-radius: 20px;
-    border: 1px solid var(--border2);
-    background: transparent;
-    color: var(--text2);
-    font-size: 12px;
-    font-family: var(--font-body);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .filter-chip.active {
-    background: rgba(0,212,170,0.1);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .search-box {
-    padding: 6px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 13px;
-    outline: none;
-    width: 160px;
-    transition: border-color 0.2s;
-  }
-
-  .search-box:focus { border-color: var(--accent); }
-  .search-box::placeholder { color: var(--text3); }
+  /* RESULTS */
+  .results{display:flex;flex-direction:column;gap:16px}
+  .rhd{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .rtitle{font-family:var(--font-head);font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .stag{font-size:10px;font-family:var(--font-mono);color:var(--text3);padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-weight:400}
+  .rmeta{font-size:11px;color:var(--text3);font-family:var(--font-mono)}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .ch{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-family:var(--font-body);cursor:pointer;transition:all .15s}
+  .ch:hover{border-color:var(--orange);color:var(--orange-lt)}
+  .ch.on{background:var(--orange-dim);border-color:var(--orange);color:var(--orange-lt)}
+  input.srch{width:160px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--font-body);font-size:12px;padding:6px 11px;outline:none;transition:border-color .2s}
+  input.srch:focus{border-color:var(--orange)}
+  input.srch::placeholder{color:var(--text3)}
 
   /* TABLE */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-  }
+  .tw{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  thead tr{background:var(--surface2);border-bottom:1px solid var(--border2)}
+  th{padding:11px 14px;text-align:left;font-size:10px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:500;white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
+  th:hover{color:var(--orange-lt)} th.srt{color:var(--orange-lt)}
+  th .ar{margin-left:3px;opacity:.3} th.srt .ar{opacity:1}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:rgba(232,96,10,0.04)}
+  td{padding:11px 14px;font-size:13px;white-space:nowrap}
+  .sn{font-family:var(--font-head);font-weight:600;font-size:14px;color:var(--text);display:block}
+  .ss{font-size:10px;color:var(--text3);font-family:var(--font-mono);display:block;margin-top:1px}
+  .mo{font-family:var(--font-mono);font-weight:500}
+  .bt{color:var(--bull)} .brt{color:var(--bear)} .wt{color:var(--warn)}
 
-  table { width: 100%; border-collapse: collapse; }
+  .vw{display:flex;align-items:center;gap:7px}
+  .vb{width:50px;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+  .vf{height:100%;border-radius:2px;background:var(--orange)}
 
-  thead tr {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border2);
-  }
+  .rw{min-width:90px}
+  .rb{height:3px;background:var(--surface3);border-radius:2px;position:relative;margin-top:5px}
+  .rf{position:absolute;left:0;top:0;height:100%;width:100%;background:linear-gradient(90deg,var(--bear),var(--warn),var(--bull));border-radius:2px}
+  .rd{width:7px;height:7px;border-radius:50%;background:var(--text);border:1.5px solid var(--bg);position:absolute;top:-2px;transform:translateX(-50%)}
+  .re{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);font-family:var(--font-mono);margin-top:3px}
+  .rp{font-size:10px;color:var(--text2);font-family:var(--font-mono)}
 
-  th {
-    padding: 12px 16px;
-    text-align: left;
-    font-size: 10px;
-    font-family: var(--font-mono);
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    font-weight: 500;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    transition: color 0.15s;
-  }
+  .bdg{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-family:var(--font-mono);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+  .bdg.breakout{background:var(--bull-dim);color:var(--bull);border:1px solid rgba(34,197,94,.2)}
+  .bdg.consolidating{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(245,158,11,.2)}
+  .bdg.ema{background:rgba(56,189,248,.1);color:var(--info);border:1px solid rgba(56,189,248,.2)}
+  .bdg.btst{background:var(--orange-dim);color:var(--orange-lt);border:1px solid var(--border-o)}
+  .bdg.volume{background:rgba(99,102,241,.1);color:#a5b4fc;border:1px solid rgba(99,102,241,.2)}
+  .bdg.weak{background:var(--bear-dim);color:var(--bear);border:1px solid rgba(239,68,68,.2)}
 
-  th:hover { color: var(--accent); }
+  .sig{display:inline-block;padding:4px 10px;border-radius:5px;font-family:var(--font-head);font-size:11px;font-weight:600}
+  .sig.buy{background:var(--bull-dim);color:var(--bull)}
+  .sig.watch{background:var(--warn-dim);color:var(--warn)}
+  .sig.avoid{background:var(--bear-dim);color:var(--bear)}
 
-  th .sort-arrow { margin-left: 4px; opacity: 0.4; }
-  th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+  .ht{position:relative;cursor:help}
+  .ht::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border-o);color:var(--text);font-size:11px;font-family:var(--font-body);padding:9px 12px;border-radius:8px;width:220px;z-index:200;line-height:1.55;white-space:normal;box-shadow:0 10px 30px rgba(0,0,0,.5);pointer-events:none;opacity:0;transition:opacity .15s}
+  .ht:hover::after{opacity:1}
 
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
-    cursor: pointer;
-  }
-
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: rgba(255,255,255,0.02); }
-
-  td {
-    padding: 12px 16px;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-
-  .stock-name {
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text);
-    display: block;
-  }
-
-  .stock-sector {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: var(--font-mono);
-    margin-top: 1px;
-    display: block;
-  }
-
-  .price { font-family: var(--font-mono); font-weight: 500; }
-  .bull-text { color: var(--bull); }
-  .bear-text { color: var(--bear); }
-  .neutral-text { color: var(--neutral); }
-
-  .volume-bar-wrap { display: flex; align-items: center; gap: 8px; }
-  .volume-bar {
-    width: 60px; height: 4px;
-    background: var(--surface2);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .volume-fill { height: 100%; border-radius: 2px; background: var(--accent); }
-
-  .range-bar-wrap { min-width: 100px; }
-  .range-bar {
-    height: 4px;
-    background: var(--surface2);
-    border-radius: 2px;
-    position: relative;
-    margin-top: 4px;
-  }
-  .range-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: linear-gradient(90deg, var(--bear), var(--neutral), var(--bull));
-  }
-  .range-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--text);
-    position: absolute;
-    top: -2px;
-    transform: translateX(-50%);
-    border: 1.5px solid var(--bg);
-  }
-  .range-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--text3); font-family: var(--font-mono); margin-top: 2px; }
-
-  .pattern-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 5px;
-    font-size: 11px;
-    font-family: var(--font-mono);
-    font-weight: 500;
-  }
-
-  .pattern-badge.breakout { background: rgba(16,185,129,0.15); color: var(--bull); border: 1px solid rgba(16,185,129,0.25); }
-  .pattern-badge.consolidating { background: rgba(245,158,11,0.15); color: var(--neutral); border: 1px solid rgba(245,158,11,0.25); }
-  .pattern-badge.ema { background: rgba(99,102,241,0.15); color: var(--accent4); border: 1px solid rgba(99,102,241,0.25); }
-  .pattern-badge.btst { background: rgba(0,212,170,0.15); color: var(--accent); border: 1px solid rgba(0,212,170,0.25); }
-  .pattern-badge.weak { background: rgba(239,68,68,0.15); color: var(--bear); border: 1px solid rgba(239,68,68,0.25); }
-
-  .signal {
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 6px;
-  }
-  .signal.buy { background: rgba(16,185,129,0.15); color: var(--bull); }
-  .signal.watch { background: rgba(245,158,11,0.15); color: var(--neutral); }
-  .signal.avoid { background: rgba(239,68,68,0.15); color: var(--bear); }
-
-  .rsi-wrap { display: flex; align-items: center; gap: 6px; }
-  .rsi-val { font-family: var(--font-mono); font-size: 13px; font-weight: 500; }
-
-  /* TOOLTIP on table cells */
-  .has-tip { position: relative; cursor: help; }
-  .has-tip::after {
-    content: attr(data-tip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1e293b;
-    border: 1px solid var(--border2);
-    color: var(--text);
-    font-size: 11px;
-    font-family: var(--font-body);
-    padding: 8px 12px;
-    border-radius: 8px;
-    width: 220px;
-    z-index: 100;
-    line-height: 1.5;
-    white-space: normal;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    margin-bottom: 6px;
-  }
-  .has-tip:hover::after { opacity: 1; }
+  .empty{text-align:center;padding:60px 20px;color:var(--text3);font-family:var(--font-mono);font-size:13px;display:none}
+  .empty.on{display:block} .empty strong{color:var(--orange)}
 
   /* LEGEND */
-  .legend-bar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
+  .legend{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;gap:20px;flex-wrap:wrap}
+  .ltit{font-size:10px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;flex-basis:100%;margin-bottom:4px}
+  .li{display:flex;gap:9px;flex:1;min-width:155px}
+  .ld{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
+  .lt strong{font-size:12px;color:var(--text);display:block;font-weight:500}
+  .lt span{font-size:11px;color:var(--text2);line-height:1.4}
 
-  .legend-title {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    flex-basis: 100%;
-    margin-bottom: 4px;
-  }
+  /* FOOTER */
+  footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  .fl{font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.8}
+  .fr{font-size:11px;color:var(--text3);font-family:var(--font-mono);text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+  .fr a{color:var(--orange);text-decoration:none}
+  .fr a:hover{text-decoration:underline}
 
-  .legend-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    flex: 1;
-    min-width: 180px;
-  }
 
-  .legend-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    margin-top: 4px;
-    flex-shrink: 0;
-  }
+  @keyframes rowIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  tbody tr{animation:rowIn .25s ease both}
+  tbody tr:nth-child(1){animation-delay:.02s} tbody tr:nth-child(2){animation-delay:.04s}
+  tbody tr:nth-child(3){animation-delay:.06s} tbody tr:nth-child(4){animation-delay:.08s}
+  tbody tr:nth-child(5){animation-delay:.10s} tbody tr:nth-child(6){animation-delay:.12s}
+  tbody tr:nth-child(7){animation-delay:.14s} tbody tr:nth-child(8){animation-delay:.16s}
 
-  .legend-text strong {
-    font-size: 12px;
-    color: var(--text);
-    display: block;
-    font-weight: 500;
-  }
-
-  .legend-text span {
-    font-size: 11px;
-    color: var(--text2);
-    line-height: 1.4;
-  }
-
-  /* SKILL LEVEL TOGGLE */
-  .skill-level-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 16px;
-    margin-bottom: 20px;
-  }
-
-  .skill-level-label { font-size: 12px; color: var(--text2); font-family: var(--font-mono); }
-
-  .skill-btns { display: flex; gap: 6px; margin-left: auto; }
-
-  .skill-btn {
-    padding: 5px 14px;
-    border-radius: 6px;
-    border: 1px solid var(--border2);
-    background: transparent;
-    font-size: 12px;
-    font-family: var(--font-body);
-    cursor: pointer;
-    transition: all 0.15s;
-    color: var(--text2);
-  }
-
-  .skill-btn.active.beg { background: rgba(16,185,129,0.15); border-color: var(--bull); color: var(--bull); }
-  .skill-btn.active.mid { background: rgba(245,158,11,0.15); border-color: var(--neutral); color: var(--neutral); }
-  .skill-btn.active.adv { background: rgba(99,102,241,0.15); border-color: var(--accent4); color: var(--accent4); }
-
-  .explanation-box {
-    background: rgba(0,212,170,0.05);
-    border: 1px solid rgba(0,212,170,0.15);
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: var(--text2);
-    line-height: 1.6;
-    display: none;
-  }
-
-  .explanation-box.show { display: block; }
-  .explanation-box strong { color: var(--accent); }
-
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text3);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    display: none;
-  }
-
-  .empty-state.show { display: block; }
-
-  /* RESPONSIVE */
-  @media (max-width: 900px) {
-    .main-grid { grid-template-columns: 1fr; }
-    .metrics-row { grid-template-columns: repeat(2, 1fr); }
-    .control-panel { position: static; }
-  }
-
-  @media (max-width: 500px) {
-    .metrics-row { grid-template-columns: 1fr 1fr; }
-    header { flex-direction: column; align-items: flex-start; }
-  }
-
-  /* ANIMATIONS */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  tbody tr { animation: fadeIn 0.3s ease both; }
-  tbody tr:nth-child(1) { animation-delay: 0.02s; }
-  tbody tr:nth-child(2) { animation-delay: 0.04s; }
-  tbody tr:nth-child(3) { animation-delay: 0.06s; }
-  tbody tr:nth-child(4) { animation-delay: 0.08s; }
-  tbody tr:nth-child(5) { animation-delay: 0.10s; }
-  tbody tr:nth-child(6) { animation-delay: 0.12s; }
-
-  .scan-type-tag {
-    font-size: 10px;
-    font-family: var(--font-mono);
-    color: var(--text3);
-    padding: 2px 6px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    margin-left: 6px;
-  }
-
-  .github-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    color: var(--text2);
-    font-size: 12px;
-    font-family: var(--font-body);
-    text-decoration: none;
-    transition: all 0.15s;
-    cursor: pointer;
-  }
-
-  .github-btn:hover { border-color: var(--accent); color: var(--accent); }
+  @media(max-width:960px){.layout{grid-template-columns:1fr}.panel{position:static}.metrics{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.brand-title{font-size:24px}.metrics{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo-block">
-      <div class="logo-icon">PK</div>
-      <div class="logo-text">
-        <h1>PKScreener Dashboard</h1>
-        <p>NSE · BSE Stock Screener &nbsp;|&nbsp; Made in India 🇮🇳</p>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="market-pill">
-        <span class="dot"></span>
-        <span class="market-name">NIFTY 50</span>
-        <span class="market-val" id="niftyVal">22,866.95</span>
-        <span style="color:var(--bull);font-size:11px;" id="niftyChg">+0.00%</span>
-      </div>
-      <div class="market-pill">
-        <span class="dot"></span>
-        <span class="market-name">SENSEX</span>
-        <span class="market-val" id="sensexVal">73,743.44</span>
-        <span style="color:var(--bull);font-size:11px;" id="sensexChg">+0.00%</span>
-      </div>
-      <span class="last-updated" id="lastUpdated">Last scan: —</span>
-      <button class="github-btn" onclick="exportToGitHub()">⬆ Push to GitHub</button>
-    </div>
-  </header>
+<div id="modeBanner" class="remote">
+  <span class="mode-dot"></span>
+  <span id="modeText">Detecting mode...</span>
+  <span style="margin-left:auto;opacity:.6;font-size:10px" id="modeHint"></span>
+</div>
 
-  <!-- SKILL LEVEL -->
-  <div class="skill-level-bar">
-    <span class="skill-level-label">📖 Explanation mode:</span>
-    <div class="skill-btns">
-      <button class="skill-btn beg" onclick="setSkill('beginner',this)">Beginner</button>
-      <button class="skill-btn mid active" onclick="setSkill('intermediate',this)">Intermediate</button>
-      <button class="skill-btn adv" onclick="setSkill('advanced',this)">Advanced</button>
+<div class="page">
+
+<header>
+  <div>
+    <div class="brand-eyebrow">NSE · BSE · India Equities</div>
+    <div class="brand-title">India Stock <span>Screener</span></div>
+    <div class="brand-sub">Powered by PKScreener &nbsp;·&nbsp; <span id="sessionLabel">—</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+    <div class="mpill">
+      <div>
+        <div class="mpill-name">Nifty 50</div>
+        <div class="mpill-val" id="niftyVal">—</div>
+        <div class="mpill-chg" id="niftyChg">—</div>
+      </div>
+      <div class="mpill-div"></div>
+      <div>
+        <div class="mpill-name">Sensex</div>
+        <div class="mpill-val" id="sensexVal">—</div>
+        <div class="mpill-chg" id="sensexChg">—</div>
+      </div>
     </div>
-    <span style="font-size:11px;color:var(--text3);margin-left:12px;">Tooltips and explanations adjust to your level</span>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono)" id="lastUpdated">Last scan: —</div>
+  </div>
+</header>
+
+<!-- SKILL LEVEL -->
+<div class="skill-bar">
+  <span class="sbl">Explanation level:</span>
+  <div class="sbs">
+    <button class="sb beg" onclick="setSkill('beginner',this)">Beginner</button>
+    <button class="sb mid on" onclick="setSkill('intermediate',this)">Intermediate</button>
+    <button class="sb adv" onclick="setSkill('advanced',this)">Advanced</button>
+  </div>
+  <span style="font-size:10px;color:var(--text3);margin-left:8px">Tooltips adjust to your level</span>
+</div>
+<div class="eb" id="eb"></div>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="mc buy"><div class="mc-lbl">Breakout / Buy</div><div class="mc-val" id="mBuy">0</div><div class="mc-sub">Strong signals</div></div>
+  <div class="mc watch"><div class="mc-lbl">Watch List</div><div class="mc-val" id="mWatch">0</div><div class="mc-sub">Near breakout</div></div>
+  <div class="mc avoid"><div class="mc-lbl">Avoid</div><div class="mc-val" id="mAvoid">0</div><div class="mc-sub">Weak / bearish</div></div>
+  <div class="mc total"><div class="mc-lbl">Total Scanned</div><div class="mc-val" id="mTotal">0</div><div class="mc-sub">Stocks analysed</div></div>
+</div>
+
+<div class="layout">
+
+  <!-- PANEL -->
+  <div class="panel">
+    <div class="panel-hd">Scan Controls</div>
+
+    <div class="cg">
+      <div class="clbl">Index / Universe <span class="tip" data-tip="Which group of stocks to scan. Nifty 50 = top 50 by market cap. Nifty 500 = broader market. All NSE = every listed stock.">?</span></div>
+      <select id="idxSel" onchange="updateExplain()">
+        <option value="1">Nifty 50</option>
+        <option value="2">Nifty Next 50</option>
+        <option value="3">Nifty 100</option>
+        <option value="4">Nifty 200</option>
+        <option value="12" selected>Nifty 500</option>
+        <option value="0">All NSE Stocks</option>
+      </select>
+    </div>
+
+    <div class="cg">
+      <div class="clbl">Scan Type <span class="tip" data-tip="What pattern to find. Breakout = crossing resistance with volume. EMA = momentum signal. BTST = buy today sell tomorrow setup.">?</span></div>
+      <select id="scnSel" onchange="updateExplain()">
+        <option value="7">Breakout (Consolidating)</option>
+        <option value="29">5 EMA — Intraday</option>
+        <option value="42">Confluence (50 & 200 MA)</option>
+        <option value="6">Volume Surge</option>
+        <option value="3">Bullish Reversal Candles</option>
+        <option value="1">Moving Average Crossover</option>
+        <option value="9">RSI Screening</option>
+        <option value="11">Momentum Gainers</option>
+      </select>
+    </div>
+
+    <div class="cg">
+      <div class="clbl">Min RSI <span class="tip" data-tip="RSI measures momentum 0–100. Above 60 = strong uptrend. Below 40 = weak. Set your minimum threshold.">?</span></div>
+      <div class="sv" id="rsiOut">45</div>
+      <input type="range" min="20" max="80" value="45" id="rsiSl" oninput="document.getElementById('rsiOut').textContent=this.value">
+      <div class="se"><span>20</span><span>80</span></div>
+    </div>
+
+    <div class="cg">
+      <div class="clbl">Min Volume (× Avg) <span class="tip" data-tip="Volume multiplier vs 20-day average. 2× means double normal activity — confirms breakout strength.">?</span></div>
+      <div class="sv" id="volOut">1.5×</div>
+      <input type="range" min="10" max="50" value="15" id="volSl" oninput="document.getElementById('volOut').textContent=(this.value/10).toFixed(1)+'×'">
+      <div class="se"><span>1×</span><span>5×</span></div>
+    </div>
+
+    <div class="cg">
+      <div class="clbl">Signal Filter</div>
+      <div class="tr">
+        <button class="tb on" onclick="setSig('ALL',this)">All</button>
+        <button class="tb" onclick="setSig('BUY',this)">Buy</button>
+        <button class="tb" onclick="setSig('WATCH',this)">Watch</button>
+        <button class="tb" onclick="setSig('AVOID',this)">Avoid</button>
+      </div>
+    </div>
+
+    <hr class="div">
+
+    <button class="run" id="runBtn" onclick="runScan()">▶ Run Scan</button>
+    <button class="ghost" id="ghBtn" style="display:none" onclick="triggerGitHub()">⬆ Trigger GitHub Scan</button>
+    <button class="ghost" onclick="loadSample()">⟳ Load Sample Data</button>
+
+    <hr class="div">
+
+    <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.85">
+      <div style="color:var(--text2);font-weight:500;margin-bottom:4px;font-family:var(--font-body)">How to use</div>
+      1 · Select index & scan type<br>
+      2 · Set RSI & volume thresholds<br>
+      3 · Click Run Scan<br>
+      4 · Click any row for details<br>
+      5 · Share via GitHub Pages URL
+    </div>
   </div>
 
-  <!-- EXPLANATION BOX -->
-  <div class="explanation-box" id="explanationBox"></div>
+  <!-- RESULTS -->
+  <div class="results">
 
-  <!-- METRICS -->
-  <div class="metrics-row">
-    <div class="metric-card green">
-      <div class="metric-label">Breakout Stocks</div>
-      <div class="metric-value" id="mBreakout">0</div>
-      <div class="metric-sub">Strong buy signals</div>
-    </div>
-    <div class="metric-card amber">
-      <div class="metric-label">Watch List</div>
-      <div class="metric-value" id="mWatch">0</div>
-      <div class="metric-sub">Consolidating / Near breakout</div>
-    </div>
-    <div class="metric-card red">
-      <div class="metric-label">Avoid</div>
-      <div class="metric-value" id="mAvoid">0</div>
-      <div class="metric-sub">Weak / bearish signals</div>
-    </div>
-    <div class="metric-card indigo">
-      <div class="metric-label">Total Scanned</div>
-      <div class="metric-value" id="mTotal">0</div>
-      <div class="metric-sub">Stocks analyzed</div>
-    </div>
-  </div>
-
-  <!-- MAIN GRID -->
-  <div class="main-grid">
-
-    <!-- CONTROL PANEL -->
-    <div class="control-panel">
-      <div class="panel-title">
-        <span class="icon">⚙</span>
-        Scan Controls
+    <div class="rhd">
+      <div>
+        <div class="rtitle">Results <span class="stag" id="stag">No scan run yet</span></div>
+        <div class="rmeta" id="rmeta">Run a scan to see stock results</div>
       </div>
-
-      <div class="control-group">
-        <div class="control-label">
-          Index / Universe
-          <span class="tooltip-icon" data-tip="Choose which group of stocks to scan. Nifty 50 = top 50 companies. Nifty 500 = broader market.">?</span>
-        </div>
-        <select id="indexSelect" onchange="updateExplanation()">
-          <option value="1">Nifty 50</option>
-          <option value="2">Nifty Next 50</option>
-          <option value="3">Nifty 100</option>
-          <option value="4">Nifty 200</option>
-          <option value="12" selected>Nifty 500</option>
-          <option value="0">All NSE Stocks</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">
-          Scan Type
-          <span class="tooltip-icon" data-tip="What pattern to look for. Breakout = stock crossing resistance. EMA = momentum signal. BTST = buy today, sell tomorrow.">?</span>
-        </div>
-        <select id="scanSelect" onchange="updateExplanation()">
-          <option value="7">Breakout (Consolidating)</option>
-          <option value="29">5 EMA — Intraday</option>
-          <option value="42">Confluence (50 & 200 MA)</option>
-          <option value="6">Volume Surge</option>
-          <option value="3">Bullish Reversal Candles</option>
-          <option value="1">Moving Average Crossover</option>
-          <option value="9">RSI based screening</option>
-          <option value="11">Momentum Gainers</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">
-          Min RSI
-          <span class="tooltip-icon" data-tip="RSI (Relative Strength Index) measures momentum. Above 60 = strong uptrend. Below 40 = oversold/weak.">?</span>
-        </div>
-        <div class="slider-val" id="rsiVal">45</div>
-        <div class="slider-wrap">
-          <input type="range" min="20" max="80" value="45" id="rsiSlider" oninput="document.getElementById('rsiVal').textContent=this.value">
-          <div class="slider-labels"><span>20 (Oversold)</span><span>80 (Overbought)</span></div>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">
-          Min Volume (x Avg)
-          <span class="tooltip-icon" data-tip="Volume multiplier vs average. 2x means today's volume is twice the normal. High volume confirms breakout strength.">?</span>
-        </div>
-        <div class="slider-val" id="volVal">1.5x</div>
-        <div class="slider-wrap">
-          <input type="range" min="10" max="50" value="15" id="volSlider" oninput="document.getElementById('volVal').textContent=(this.value/10).toFixed(1)+'x'">
-          <div class="slider-labels"><span>1x</span><span>5x</span></div>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="control-label">
-          Signal Filter
-          <span class="tooltip-icon" data-tip="Show only stocks with this signal. BUY = strong opportunity. WATCH = monitor. ALL = show everything.">?</span>
-        </div>
-        <div class="toggle-group">
-          <button class="toggle-btn active" onclick="setFilter('ALL',this)">All</button>
-          <button class="toggle-btn" onclick="setFilter('BUY',this)">Buy</button>
-          <button class="toggle-btn" onclick="setFilter('WATCH',this)">Watch</button>
-          <button class="toggle-btn" onclick="setFilter('AVOID',this)">Avoid</button>
-        </div>
-      </div>
-
-      <hr class="divider">
-
-      <div class="control-group">
-        <div class="control-label">Scan Results</div>
-        <div style="display:flex;gap:8px;">
-          <button class="run-btn" style="flex:1;" onclick="runScan()">▶ Run Scan</button>
-          <button class="run-btn" style="flex:0 0 44px;background:var(--surface2);color:var(--text2);border:1px solid var(--border2);" onclick="loadSample()" title="Load sample data">⟳</button>
-        </div>
-      </div>
-
-      <hr class="divider">
-
-      <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.6;">
-        <div style="margin-bottom:6px;color:var(--text2);font-weight:500;">How to use</div>
-        1. Select index & scan type<br>
-        2. Adjust RSI & volume filters<br>
-        3. Click Run Scan<br>
-        4. Click any row for details<br>
-        5. Push to GitHub to share
+      <div class="chips">
+        <button class="ch on" onclick="setChip('ALL',this)">All Scans</button>
+        <button class="ch" onclick="setChip('BREAKOUT',this)">Breakout</button>
+        <button class="ch" onclick="setChip('EMA',this)">5-EMA</button>
+        <button class="ch" onclick="setChip('BTST',this)">BTST</button>
+        <button class="ch" onclick="setChip('VOLUME',this)">Volume</button>
+        <input type="text" class="srch" placeholder="Search symbol…" id="srchBox" oninput="filterTable()">
       </div>
     </div>
 
-    <!-- RESULTS -->
-    <div class="results-panel">
-
-      <div class="results-header">
-        <div>
-          <div class="results-title">
-            Scan Results
-            <span class="scan-type-tag" id="scanTag">No scan run yet</span>
-          </div>
-          <div class="results-meta" id="resultsMeta">Run a scan to see results</div>
-        </div>
-        <div class="filter-row">
-          <input class="search-box" type="text" placeholder="Search stock..." id="searchBox" oninput="filterTable()">
-        </div>
-      </div>
-
-      <!-- FILTER CHIPS -->
-      <div class="filter-row" id="filterChips">
-        <button class="filter-chip active" onclick="setChip('ALL',this)">All Scans</button>
-        <button class="filter-chip" onclick="setChip('BREAKOUT',this)">Breakout</button>
-        <button class="filter-chip" onclick="setChip('EMA',this)">5-EMA</button>
-        <button class="filter-chip" onclick="setChip('BTST',this)">BTST</button>
-        <button class="filter-chip" onclick="setChip('CONSOLIDATING',this)">Consolidating</button>
-      </div>
-
-      <!-- TABLE -->
-      <div class="table-wrap">
-        <table id="resultsTable">
-          <thead>
-            <tr>
-              <th onclick="sortTable(0)">Stock <span class="sort-arrow">↕</span></th>
-              <th onclick="sortTable(1)">LTP ₹ <span class="sort-arrow">↕</span></th>
-              <th onclick="sortTable(2)">% Change <span class="sort-arrow">↕</span></th>
-              <th onclick="sortTable(3)">Volume <span class="sort-arrow">↕</span></th>
-              <th>52W Range</th>
-              <th onclick="sortTable(5)">RSI <span class="sort-arrow">↕</span></th>
-              <th>Pattern</th>
-              <th>Signal</th>
-              <th onclick="sortTable(7)">1-Day <span class="sort-arrow">↕</span></th>
-              <th onclick="sortTable(8)">2-Day <span class="sort-arrow">↕</span></th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-          </tbody>
-        </table>
-        <div class="empty-state show" id="emptyState">
-          No scan run yet. Select your filters and click <strong style="color:var(--accent)">Run Scan</strong>.
-        </div>
-      </div>
-
-      <!-- LEGEND -->
-      <div class="legend-bar" id="legendBar">
-        <div class="legend-title">Column Guide</div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:var(--bull)"></div>
-          <div class="legend-text">
-            <strong>LTP (Last Traded Price)</strong>
-            <span id="leg-ltp">Current market price of the stock in ₹</span>
-          </div>
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:var(--neutral)"></div>
-          <div class="legend-text">
-            <strong>Volume</strong>
-            <span id="leg-vol">Today's volume vs average. 2x = double normal trading activity — confirms price moves</span>
-          </div>
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:var(--accent4)"></div>
-          <div class="legend-text">
-            <strong>RSI</strong>
-            <span id="leg-rsi">Relative Strength Index. 40–60 = neutral. Above 60 = momentum. Above 70 = caution (overbought)</span>
-          </div>
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:var(--accent)"></div>
-          <div class="legend-text">
-            <strong>1-Day / 2-Day</strong>
-            <span id="leg-ret">Backtested returns — how this pattern performed historically after being detected</span>
-          </div>
-        </div>
-      </div>
-
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy(0)">Stock <span class="ar">↕</span></th>
+            <th onclick="sortBy(1)">LTP ₹ <span class="ar">↕</span></th>
+            <th onclick="sortBy(2)">% Chg <span class="ar">↕</span></th>
+            <th onclick="sortBy(3)">Volume <span class="ar">↕</span></th>
+            <th>52W Range</th>
+            <th onclick="sortBy(5)">RSI <span class="ar">↕</span></th>
+            <th>Pattern</th>
+            <th>Signal</th>
+            <th onclick="sortBy(7)">1-Day <span class="ar">↕</span></th>
+            <th onclick="sortBy(8)">2-Day <span class="ar">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty on" id="emptyState">No data yet — select filters and click <strong>Run Scan</strong></div>
     </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+      <div class="ltit">Column Guide</div>
+      <div class="li"><div class="ld" style="background:var(--bull)"></div><div class="lt"><strong>LTP</strong><span id="lLTP">Last traded price in ₹. Compare with 52W range for cycle context.</span></div></div>
+      <div class="li"><div class="ld" style="background:var(--orange)"></div><div class="lt"><strong>Volume</strong><span id="lVOL">Today's volume vs 20-day avg. 2×+ confirms breakout with institutional activity.</span></div></div>
+      <div class="li"><div class="ld" style="background:var(--info)"></div><div class="lt"><strong>RSI</strong><span id="lRSI">Relative Strength Index (14). 55–70 = bullish momentum. 70+ = overbought caution.</span></div></div>
+      <div class="li"><div class="ld" style="background:var(--warn)"></div><div class="lt"><strong>1-Day / 2-Day</strong><span id="lRET">Backtested returns after this pattern was detected historically on NSE.</span></div></div>
+    </div>
+
   </div>
 </div>
 
+<!-- FOOTER -->
+<footer>
+  <div class="fl">
+    India Stock Screener &nbsp;·&nbsp; NSE / BSE Data<br>
+    For informational purposes only. Not financial advice.<br>
+    Data sourced from NSE via PKScreener open-source library.
+  </div>
+  <div class="fr">
+    <div>Source: <a href="https://github.com/VenkyHari98/screener-dashboard" target="_blank">github.com/VenkyHari98/screener-dashboard</a></div>
+    <div>Data via: <a href="https://github.com/pkjmesra/PKScreener" target="_blank">PKScreener (Open Source)</a></div>
+    <div id="footerMode" style="color:var(--text3)">—</div>
+  </div>
+</footer>
+
+</div>
+
 <script>
-// ─── DATA ───────────────────────────────────────────────────────────────────
-const SAMPLE_DATA = [
-  { stock:'TATAMOTORS', sector:'Auto', ltp:912.40, chg:2.3, vol:3.2, w52l:612, w52h:1078, rsi:58.4, pattern:'BREAKOUT', signal:'BUY', d1:1.8, d2:3.1, scan:'BREAKOUT' },
-  { stock:'SUNPHARMA',  sector:'Pharma', ltp:1589.75, chg:3.8, vol:4.1, w52l:1102, w52h:1780, rsi:67.3, pattern:'BREAKOUT', signal:'BUY', d1:4.2, d2:6.1, scan:'BREAKOUT' },
-  { stock:'BAJFINANCE', sector:'Finance', ltp:7124.00, chg:2.9, vol:2.9, w52l:5780, w52h:8192, rsi:61.9, pattern:'BREAKOUT', signal:'BUY', d1:3.0, d2:5.4, scan:'BREAKOUT' },
-  { stock:'HDFCBANK',   sector:'Banking', ltp:1642.10, chg:1.1, vol:1.8, w52l:1422, w52h:1794, rsi:52.1, pattern:'CONSOLIDATING', signal:'WATCH', d1:0.6, d2:2.3, scan:'CONSOLIDATING' },
-  { stock:'INFY',       sector:'IT', ltp:1823.00, chg:0.8, vol:1.4, w52l:1351, w52h:1953, rsi:49.3, pattern:'CONSOLIDATING', signal:'WATCH', d1:0.4, d2:1.1, scan:'EMA' },
-  { stock:'TCS',        sector:'IT', ltp:3210.50, chg:1.5, vol:2.1, w52l:2948, w52h:4254, rsi:55.8, pattern:'EMA', signal:'BUY', d1:2.1, d2:3.8, scan:'EMA' },
-  { stock:'RELIANCE',   sector:'Energy', ltp:1198.00, chg:-0.4, vol:1.1, w52l:1136, w52h:1608, rsi:44.2, pattern:'CONSOLIDATING', signal:'WATCH', d1:-0.2, d2:0.8, scan:'BTST' },
-  { stock:'WIPRO',      sector:'IT', ltp:448.30, chg:-0.9, vol:1.2, w52l:390, w52h:584, rsi:42.8, pattern:'WEAK', signal:'AVOID', d1:-1.1, d2:-0.8, scan:'BREAKOUT' },
-  { stock:'ADANIENT',   sector:'Infra', ltp:2341.00, chg:4.2, vol:5.1, w52l:1750, w52h:3124, rsi:71.2, pattern:'BTST', signal:'BUY', d1:5.1, d2:7.2, scan:'BTST' },
-  { stock:'HDFC',       sector:'Finance', ltp:1542.00, chg:1.9, vol:3.4, w52l:1280, w52h:1790, rsi:63.4, pattern:'EMA', signal:'BUY', d1:2.4, d2:4.0, scan:'EMA' },
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const SAMPLE = [
+  {stock:'TATAMOTORS',sector:'Auto',    ltp:912.40, chg:2.3, vol:3.2,w52l:612, w52h:1078,rsi:58.4,pattern:'BREAKOUT',     signal:'BUY',  d1:1.8,d2:3.1,scan:'BREAKOUT'},
+  {stock:'SUNPHARMA', sector:'Pharma',  ltp:1589.75,chg:3.8, vol:4.1,w52l:1102,w52h:1780,rsi:67.3,pattern:'BREAKOUT',     signal:'BUY',  d1:4.2,d2:6.1,scan:'BREAKOUT'},
+  {stock:'BAJFINANCE',sector:'Finance', ltp:7124.00,chg:2.9, vol:2.9,w52l:5780,w52h:8192,rsi:61.9,pattern:'BREAKOUT',     signal:'BUY',  d1:3.0,d2:5.4,scan:'BREAKOUT'},
+  {stock:'HDFCBANK',  sector:'Banking', ltp:1642.10,chg:1.1, vol:1.8,w52l:1422,w52h:1794,rsi:52.1,pattern:'CONSOLIDATING',signal:'WATCH',d1:0.6,d2:2.3,scan:'CONSOLIDATING'},
+  {stock:'INFY',      sector:'IT',      ltp:1823.00,chg:0.8, vol:1.4,w52l:1351,w52h:1953,rsi:49.3,pattern:'CONSOLIDATING',signal:'WATCH',d1:0.4,d2:1.1,scan:'EMA'},
+  {stock:'TCS',       sector:'IT',      ltp:3210.50,chg:1.5, vol:2.1,w52l:2948,w52h:4254,rsi:55.8,pattern:'EMA',          signal:'BUY',  d1:2.1,d2:3.8,scan:'EMA'},
+  {stock:'ADANIENT',  sector:'Infra',   ltp:2341.00,chg:4.2, vol:5.1,w52l:1750,w52h:3124,rsi:71.2,pattern:'BTST',         signal:'BUY',  d1:5.1,d2:7.2,scan:'BTST'},
+  {stock:'RELIANCE',  sector:'Energy',  ltp:1198.00,chg:-0.4,vol:1.1,w52l:1136,w52h:1608,rsi:44.2,pattern:'CONSOLIDATING',signal:'WATCH',d1:-0.2,d2:0.8,scan:'BTST'},
+  {stock:'WIPRO',     sector:'IT',      ltp:448.30, chg:-0.9,vol:1.2,w52l:390, w52h:584, rsi:42.8,pattern:'WEAK',         signal:'AVOID',d1:-1.1,d2:-0.8,scan:'BREAKOUT'},
+  {stock:'HDFC',      sector:'Finance', ltp:1542.00,chg:1.9, vol:3.4,w52l:1280,w52h:1790,rsi:63.4,pattern:'EMA',          signal:'BUY',  d1:2.4,d2:4.0,scan:'EMA'},
 ];
 
-let currentData = [];
-let activeFilter = 'ALL';
-let activeChip = 'ALL';
-let activeSignal = 'ALL';
-let skillLevel = 'intermediate';
-let sortCol = -1, sortDir = 1;
+let data=[], sigF='ALL', chipF='ALL', skill='intermediate', sCol=-1, sDir=1;
+const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-// ─── SKILL LEVEL ─────────────────────────────────────────────────────────────
-const EXPLANATIONS = {
+// ── MODE DETECTION ────────────────────────────────────────────────────────────
+function detectMode() {
+  const banner = document.getElementById('modeBanner');
+  const txt    = document.getElementById('modeText');
+  const hint   = document.getElementById('modeHint');
+  const ghBtn  = document.getElementById('ghBtn');
+  const runBtn = document.getElementById('runBtn');
+  const footer = document.getElementById('footerMode');
+
+  if (isLocal) {
+    banner.className = 'local';
+    txt.textContent  = '⚡ Local mode — unlimited scans · PKScreener running on this machine';
+    hint.textContent = 'localhost';
+    ghBtn.style.display  = 'none';
+    runBtn.style.display = 'flex';
+    footer.textContent   = 'Running locally · Unlimited scans';
+  } else {
+    banner.className = 'remote';
+    txt.textContent  = '☁ GitHub Pages mode — scans run via GitHub Actions (2 automated daily)';
+    hint.textContent = 'github.io';
+    ghBtn.style.display  = 'block';
+    runBtn.textContent   = '▶ Preview with Sample';
+    footer.textContent   = 'GitHub Pages · Auto-scans: 8:30 AM & 3:45 PM IST (Mon–Fri)';
+  }
+}
+
+// ── SKILL LEVEL ───────────────────────────────────────────────────────────────
+const TIPS = {
   beginner: {
-    '7':  '<strong>Breakout scan</strong> looks for stocks that are breaking out of a price range they were stuck in. Think of it like a coiled spring releasing — the stock was going sideways and is now moving up strongly. Good for buying opportunities.',
-    '29': '<strong>5 EMA scan</strong> tracks stocks where today\'s price is above a short-term average (5 days). This usually means the stock has good momentum — it\'s been going up recently.',
-    '42': '<strong>Confluence scan</strong> finds stocks where multiple moving averages all agree the stock is in an uptrend. More signals agreeing = stronger conviction.',
-    '6':  '<strong>Volume Surge</strong> finds stocks with unusually high trading activity today. High volume + price rise = more people are buying, which is a good sign.',
-    'default': 'Select a scan type to see a plain-English explanation of what it does.',
+    '7':  '<strong>Breakout scan</strong> finds stocks that were stuck in a price range and are now moving up strongly — like a coiled spring releasing. High volume makes it more reliable.',
+    '29': '<strong>5 EMA scan</strong> finds stocks where price is above its 5-day average, meaning it has been going up recently. Good for short-term trades.',
+    '42': '<strong>Confluence scan</strong> looks for stocks where multiple moving averages all agree the stock is trending up. More signals agreeing = stronger conviction.',
+    '6':  '<strong>Volume Surge</strong> finds stocks with unusually high trading activity. High volume + rising price = more people are buying, which is a positive sign.',
+    def:  'Select a scan type above to see a plain-English explanation of what it does.',
   },
   intermediate: {
-    '7':  '<strong>Breakout (Consolidating)</strong>: Scans for stocks in a tight price range (consolidation) that are showing volume expansion suggesting an impending breakout above resistance. Look for 2x+ volume confirmation.',
-    '29': '<strong>5 EMA Intraday</strong>: Identifies stocks where price has crossed above the 5-period EMA on intraday charts, signaling short-term bullish momentum. Best used in conjunction with broader trend.',
-    '42': '<strong>Confluence (50 & 200 MA)</strong>: Stocks trading near both the 50-day and 200-day moving averages simultaneously — a high-probability setup where multiple technical levels converge.',
-    '6':  '<strong>Volume Surge</strong>: Screens for stocks with volume 2x or more above the 20-day average. High volume validates price moves and signals institutional participation.',
-    'default': 'Select a scan type to see what indicators and filters are used.',
+    '7':  '<strong>Breakout (Consolidating)</strong> scans for tight price-range consolidation with expanding volume suggesting a breakout above resistance. Aim for 2×+ volume confirmation.',
+    '29': '<strong>5 EMA Intraday</strong> identifies stocks where price crosses above the 5-period EMA on intraday charts, signalling short-term bullish momentum.',
+    '42': '<strong>Confluence (50 & 200 MA)</strong> finds stocks near both the 50-day and 200-day moving averages — a high-probability setup where multiple technical levels converge.',
+    '6':  '<strong>Volume Surge</strong> screens for volume 2× above the 20-day average. High volume validates price moves and signals institutional participation.',
+    def:  'Select a scan type to see which indicators and filters are applied.',
   },
   advanced: {
-    '7':  '<strong>Breakout (VCP-style)</strong>: Volatility contraction pattern detection — stocks in decreasing volume/range consolidation breaking above pivot point with expanding volume. Entry at breakout candle close with stop below last pivot low.',
-    '29': '<strong>5 EMA Cross</strong>: Dual-timeframe EMA alignment — price above 5 EMA on 15-min chart with broader 50/200 EMA trend alignment. High win-rate intraday momentum play.',
-    '42': '<strong>MA Confluence</strong>: Golden zone between 50 and 200 EMA — stocks retracing into confluence zone with bullish price action. Optimal R:R setups with well-defined stop levels below 200 EMA.',
-    '6':  '<strong>Volume Surge (Institutional)</strong>: OBV-confirmed volume spike above 2σ from 20-day mean, with price action above VWAP — suggests institutional accumulation.',
-    'default': 'Select a scan to see technical parameters and strategy context.',
+    '7':  '<strong>Breakout (VCP-style)</strong> — volatility contraction pattern: decreasing volume/range consolidation breaking above pivot with expanding volume. Entry at breakout candle close, stop below last pivot low.',
+    '29': '<strong>5 EMA Cross</strong> — dual-timeframe EMA alignment. Price above 5 EMA on 15-min chart with 50/200 EMA trend alignment. High win-rate intraday momentum.',
+    '42': '<strong>MA Confluence</strong> — golden zone between 50 and 200 EMA. Stock retracing into confluence zone with bullish price action. Optimal R:R with defined stop below 200 EMA.',
+    '6':  '<strong>Volume Surge</strong> — OBV-confirmed spike above 2σ from 20-day mean with price above VWAP. Indicates institutional accumulation.',
+    def:  'Select a scan to see technical parameters and strategy context.',
   }
 };
 
-function setSkill(level, btn) {
-  skillLevel = level;
-  document.querySelectorAll('.skill-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  updateExplanation();
-  updateLegend();
+const LTIPS = {
+  beginner:     {ltp:'The price you would pay to buy this stock right now.',vol:"How busy the stock is today. 2× means twice as many people are trading it — usually a good sign.",rsi:'0–100 number. Above 60 = going up strongly. Below 40 = weak.',ret:'If you had bought when this pattern appeared before, this is how much you could have made in 1 or 2 days.'},
+  intermediate: {ltp:'Last traded price in ₹. Compare with 52W range to understand where it sits in its cycle.',vol:'Volume as multiple of 20-day avg. 2×+ confirms breakouts. Low volume moves are unreliable.',rsi:'RSI(14). 40–60 = neutral. 60–70 = bullish. 70+ = overbought.',ret:'Backtested 1-day and 2-day returns after this scan pattern triggered historically.'},
+  advanced:     {ltp:'LTP vs VWAP and key S/R levels. Position within 52W range indicates stage (Stage 2 preferred).',vol:'Relative volume vs 20-SMA. 2σ+ spike with price above VWAP = institutional signal.',rsi:'RSI(14) with divergence awareness. 55–70 rising slope preferred for momentum entries.',ret:'Forward returns from backtested signal — use for expectancy and position sizing.'}
+};
+
+function setSkill(lv, btn) {
+  skill = lv;
+  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  updateExplain(); updateLegend();
 }
 
-function updateExplanation() {
-  const scanVal = document.getElementById('scanSelect').value;
-  const box = document.getElementById('explanationBox');
-  const map = EXPLANATIONS[skillLevel];
-  const text = map[scanVal] || map['default'];
-  box.innerHTML = text;
-  box.classList.add('show');
+function updateExplain() {
+  const v = document.getElementById('scnSel').value;
+  const m = TIPS[skill];
+  const box = document.getElementById('eb');
+  box.innerHTML = m[v] || m.def;
+  box.classList.add('on');
 }
 
 function updateLegend() {
-  const tips = {
-    beginner: {
-      ltp: 'The current price you\'d pay to buy this stock right now.',
-      vol: 'How busy the stock is today vs normal. 2x means twice as many people are trading it — usually a good sign.',
-      rsi: 'A number from 0-100. Above 60 means the stock is going up strongly. Below 40 means it\'s weak.',
-      ret: 'If you had bought when this pattern appeared before, this is how much you would have made in 1 or 2 days on average.'
-    },
-    intermediate: {
-      ltp: 'Last traded price in ₹. Compare with 52W range to understand where it sits in its cycle.',
-      vol: 'Volume as a multiple of 20-day average. 2x+ confirms breakouts. Low volume moves are unreliable.',
-      rsi: 'RSI(14). 40-60 = neutral, 60-70 = bullish momentum, 70+ = overbought caution zone.',
-      ret: 'Backtested 1-day and 2-day returns after this scan pattern was triggered historically.'
-    },
-    advanced: {
-      ltp: 'LTP vs VWAP and key S/R levels. Position within 52W range indicates stage (Stage 2 preferred).',
-      vol: 'Relative volume vs 20-SMA. 2σ+ spike with price above VWAP = institutional participation signal.',
-      rsi: 'RSI(14) with divergence awareness. 55-70 zone with rising slope preferred for momentum entries.',
-      ret: 'Forward returns from backtested signal — use for expectancy calculation and position sizing.'
-    }
-  };
-  const t = tips[skillLevel];
-  document.getElementById('leg-ltp').textContent = t.ltp;
-  document.getElementById('leg-vol').textContent = t.vol;
-  document.getElementById('leg-rsi').textContent = t.rsi;
-  document.getElementById('leg-ret').textContent = t.ret;
+  const t = LTIPS[skill];
+  document.getElementById('lLTP').textContent = t.ltp;
+  document.getElementById('lVOL').textContent = t.vol;
+  document.getElementById('lRSI').textContent = t.rsi;
+  document.getElementById('lRET').textContent = t.ret;
 }
 
-// ─── FILTER ──────────────────────────────────────────────────────────────────
-function setFilter(val, btn) {
-  activeSignal = val;
-  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  filterTable();
-}
-
-function setChip(val, btn) {
-  activeChip = val;
-  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  filterTable();
-}
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function setSig(v, btn) { sigF=v; document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); filterTable(); }
+function setChip(v, btn){ chipF=v; document.querySelectorAll('.ch').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); filterTable(); }
 
 function filterTable() {
-  const search = document.getElementById('searchBox').value.toLowerCase();
-  const rows = document.querySelectorAll('#tableBody tr');
-  rows.forEach(row => {
-    const stock = row.dataset.stock || '';
-    const sig = row.dataset.signal || '';
-    const scan = row.dataset.scan || '';
-    const matchSearch = stock.toLowerCase().includes(search);
-    const matchSignal = activeSignal === 'ALL' || sig === activeSignal;
-    const matchChip = activeChip === 'ALL' || scan === activeChip;
-    row.style.display = (matchSearch && matchSignal && matchChip) ? '' : 'none';
+  const q = (document.getElementById('srchBox').value||'').toLowerCase();
+  document.querySelectorAll('#tbody tr').forEach(r=>{
+    const ms = q === '' || (r.dataset.stock||'').toLowerCase().includes(q);
+    const msi = sigF==='ALL' || r.dataset.signal===sigF;
+    const mch = chipF==='ALL' || r.dataset.scan===chipF;
+    r.style.display = (ms&&msi&&mch) ? '' : 'none';
   });
 }
 
-// ─── SORT ─────────────────────────────────────────────────────────────────────
-function sortTable(col) {
-  if (sortCol === col) sortDir *= -1;
-  else { sortCol = col; sortDir = 1; }
-  document.querySelectorAll('th').forEach((th, i) => {
-    th.classList.toggle('sorted', i === col);
-  });
-  currentData.sort((a, b) => {
-    const keys = ['stock','ltp','chg','vol','',  'rsi','','','d1','d2'];
-    const k = keys[col];
-    if (!k) return 0;
-    return (a[k] > b[k] ? 1 : -1) * sortDir;
-  });
-  renderTable(currentData);
+// ── SORT ──────────────────────────────────────────────────────────────────────
+function sortBy(col) {
+  if(sCol===col) sDir*=-1; else{sCol=col;sDir=1;}
+  document.querySelectorAll('th').forEach((th,i)=>th.classList.toggle('srt',i===col));
+  const keys=['stock','ltp','chg','vol','','rsi','','','d1','d2'];
+  const k=keys[col]; if(!k) return;
+  data.sort((a,b)=>(a[k]>b[k]?1:-1)*sDir);
+  render(data);
 }
 
-// ─── RENDER ──────────────────────────────────────────────────────────────────
-function renderTable(data) {
-  const tbody = document.getElementById('tableBody');
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(rows) {
+  const tbody = document.getElementById('tbody');
   const empty = document.getElementById('emptyState');
+  if(!rows||!rows.length){tbody.innerHTML='';empty.classList.add('on');return;}
+  empty.classList.remove('on');
 
-  if (!data || data.length === 0) {
-    tbody.innerHTML = '';
-    empty.classList.add('show');
-    return;
-  }
-  empty.classList.remove('show');
+  tbody.innerHTML = rows.map(d=>{
+    const rp  = Math.round(((d.ltp-d.w52l)/(d.w52h-d.w52l))*100);
+    const vpct= Math.min(100,Math.round((d.vol/5)*100));
+    const rc  = d.rsi>=60?'var(--bull)':d.rsi<=40?'var(--bear)':'var(--warn)';
+    const cc  = d.chg>=0?'bt':'brt';
+    const d1c = d.d1>=0?'bt':'brt';
+    const d2c = d.d2>=0?'bt':'brt';
+    const pc  = (d.pattern||'').toLowerCase().replace(/\s+/g,'');
+    const sc  = (d.signal||'').toLowerCase();
 
-  tbody.innerHTML = data.map(d => {
-    const rangePos = Math.round(((d.ltp - d.w52l) / (d.w52h - d.w52l)) * 100);
-    const volPct = Math.min(100, Math.round((d.vol / 5) * 100));
-    const rsiColor = d.rsi >= 60 ? 'var(--bull)' : d.rsi <= 40 ? 'var(--bear)' : 'var(--neutral)';
-    const chgColor = d.chg >= 0 ? 'bull-text' : 'bear-text';
-    const d1Color  = d.d1  >= 0 ? 'bull-text' : 'bear-text';
-    const d2Color  = d.d2  >= 0 ? 'bull-text' : 'bear-text';
-    const patternClass = d.pattern.toLowerCase().replace(' ','');
-    const signalClass = d.signal.toLowerCase();
+    const rtip = skill==='beginner'
+      ? `RSI is ${d.rsi}. ${d.rsi>=60?'Good momentum — trending up.':d.rsi<=40?'Weak — losing strength.':'Neutral — watch direction.'}`
+      : `RSI(14): ${d.rsi}. ${d.rsi>=70?'Overbought — potential reversal.':d.rsi>=60?'Bullish zone.':d.rsi<=40?'Oversold/weak.':'Neutral range.'}`;
 
-    const rsiTip = skillLevel === 'beginner'
-      ? `RSI is ${d.rsi}. ${d.rsi >= 60 ? 'Good momentum — stock is trending up.' : d.rsi <= 40 ? 'Weak — stock losing strength.' : 'Neutral zone — watch for direction.'}`
-      : `RSI(14): ${d.rsi}. ${d.rsi >= 70 ? 'Overbought — potential reversal risk.' : d.rsi >= 60 ? 'Bullish momentum zone.' : d.rsi <= 40 ? 'Oversold / weak momentum.' : 'Neutral range.'}`;
-
-    const volTip = skillLevel === 'beginner'
-      ? `Today's trading activity is ${d.vol}x the normal. ${d.vol >= 2 ? 'That\'s high — more people are buying!' : 'Fairly normal activity.'}`
-      : `Relative volume: ${d.vol}x 20-day avg. ${d.vol >= 2 ? 'Institutional-level activity detected.' : 'Below confirmation threshold.'}`;
+    const vtip = skill==='beginner'
+      ? `Today's activity is ${d.vol}× normal. ${d.vol>=2?"That's high — institutional buying likely!":'Normal activity.'}`
+      : `Rel. volume: ${d.vol}× 20-day avg. ${d.vol>=2?'Institutional-level activity.':'Below confirmation threshold.'}`;
 
     return `<tr data-stock="${d.stock}" data-signal="${d.signal}" data-scan="${d.scan}">
-      <td>
-        <span class="stock-name">${d.stock}</span>
-        <span class="stock-sector">${d.sector}</span>
-      </td>
-      <td class="price">₹${d.ltp.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
-      <td class="${chgColor} price">${d.chg >= 0 ? '+' : ''}${d.chg.toFixed(1)}%</td>
-      <td>
-        <div class="has-tip volume-bar-wrap" data-tip="${volTip}">
-          <div class="volume-bar"><div class="volume-fill" style="width:${volPct}%"></div></div>
-          <span class="${d.vol >= 2 ? 'bull-text' : 'neutral-text'} price">${d.vol.toFixed(1)}x</span>
-        </div>
-      </td>
-      <td>
-        <div class="range-bar-wrap">
-          <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);">${rangePos}% of range</div>
-          <div class="range-bar">
-            <div class="range-fill" style="width:100%"></div>
-            <div class="range-dot" style="left:${rangePos}%"></div>
-          </div>
-          <div class="range-labels"><span>₹${d.w52l.toLocaleString('en-IN')}</span><span>₹${d.w52h.toLocaleString('en-IN')}</span></div>
-        </div>
-      </td>
-      <td>
-        <div class="has-tip rsi-wrap" data-tip="${rsiTip}">
-          <span class="rsi-val" style="color:${rsiColor}">${d.rsi.toFixed(1)}</span>
-        </div>
-      </td>
-      <td><span class="pattern-badge ${patternClass}">${d.pattern}</span></td>
-      <td><span class="signal ${signalClass}">${d.signal}</span></td>
-      <td class="${d1Color} price">${d.d1 >= 0 ? '+' : ''}${d.d1.toFixed(1)}%</td>
-      <td class="${d2Color} price">${d.d2 >= 0 ? '+' : ''}${d.d2.toFixed(1)}%</td>
+      <td><span class="sn">${d.stock}</span><span class="ss">${d.sector}</span></td>
+      <td class="mo">₹${d.ltp.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="${cc} mo">${d.chg>=0?'+':''}${d.chg.toFixed(1)}%</td>
+      <td><div class="ht vw" data-tip="${vtip}"><div class="vb"><div class="vf" style="width:${vpct}%"></div></div><span class="${d.vol>=2?'bt':'wt'} mo">${d.vol.toFixed(1)}×</span></div></td>
+      <td><div class="rw"><div class="rp">${rp}% of range</div><div class="rb"><div class="rf"></div><div class="rd" style="left:${rp}%"></div></div><div class="re"><span>₹${d.w52l.toLocaleString('en-IN')}</span><span>₹${d.w52h.toLocaleString('en-IN')}</span></div></div></td>
+      <td><div class="ht" data-tip="${rtip}" style="font-family:var(--font-mono);font-weight:500;color:${rc}">${d.rsi.toFixed(1)}</div></td>
+      <td><span class="bdg ${pc}">${d.pattern}</span></td>
+      <td><span class="sig ${sc}">${d.signal}</span></td>
+      <td class="${d1c} mo">${d.d1>=0?'+':''}${d.d1.toFixed(1)}%</td>
+      <td class="${d2c} mo">${d.d2>=0?'+':''}${d.d2.toFixed(1)}%</td>
     </tr>`;
   }).join('');
 
-  // Update metrics
-  document.getElementById('mBreakout').textContent = data.filter(d => d.signal === 'BUY').length;
-  document.getElementById('mWatch').textContent    = data.filter(d => d.signal === 'WATCH').length;
-  document.getElementById('mAvoid').textContent    = data.filter(d => d.signal === 'AVOID').length;
-  document.getElementById('mTotal').textContent    = data.length;
-
+  document.getElementById('mBuy').textContent   = rows.filter(r=>r.signal==='BUY').length;
+  document.getElementById('mWatch').textContent = rows.filter(r=>r.signal==='WATCH').length;
+  document.getElementById('mAvoid').textContent = rows.filter(r=>r.signal==='AVOID').length;
+  document.getElementById('mTotal').textContent = rows.length;
   filterTable();
 }
 
-// ─── SCAN ─────────────────────────────────────────────────────────────────────
+// ── SCAN ──────────────────────────────────────────────────────────────────────
 function runScan() {
-  const btn = document.querySelector('.run-btn');
-  btn.textContent = '⏳ Scanning...';
-  btn.disabled = true;
-
-  setTimeout(() => {
+  if(isLocal) {
+    // Local mode: try to fetch from local Python server
+    const btn = document.getElementById('runBtn');
+    btn.textContent='⏳ Scanning...'; btn.disabled=true;
+    const idx = document.getElementById('idxSel').value;
+    const scn = document.getElementById('scnSel').value;
+    fetch(`http://localhost:5000/scan?index=${idx}&scan=${scn}`)
+      .then(r=>r.json())
+      .then(d=>{ data=d.stocks||[]; render(data); setMeta(d); })
+      .catch(()=>{ loadSample(); alert('Local server not running.\nStart it with: python server.py\n\nShowing sample data instead.'); })
+      .finally(()=>{ btn.innerHTML='▶ Run Scan'; btn.disabled=false; });
+  } else {
     loadSample();
-    btn.textContent = '▶ Run Scan';
-    btn.disabled = false;
-    document.getElementById('lastUpdated').textContent = 'Last scan: ' + new Date().toLocaleTimeString('en-IN');
-
-    const indexText = document.getElementById('indexSelect').options[document.getElementById('indexSelect').selectedIndex].text;
-    const scanText  = document.getElementById('scanSelect').options[document.getElementById('scanSelect').selectedIndex].text;
-    document.getElementById('scanTag').textContent = indexText + ' · ' + scanText;
-    document.getElementById('resultsMeta').textContent = `${currentData.length} stocks found · ${new Date().toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})}`;
-    updateExplanation();
-  }, 1200);
+    document.getElementById('stag').textContent='Sample data';
+  }
 }
 
 function loadSample() {
-  currentData = [...SAMPLE_DATA];
-  renderTable(currentData);
+  data=[...SAMPLE]; render(data);
+  document.getElementById('lastUpdated').textContent='Last scan: Sample data';
+  document.getElementById('stag').textContent='Sample · Nifty 500';
+  document.getElementById('rmeta').textContent=`${data.length} stocks · Demo mode`;
+  updateExplain();
 }
 
-// ─── GITHUB EXPORT ────────────────────────────────────────────────────────────
-function exportToGitHub() {
-  alert('GitHub push instructions:\n\n1. Save this HTML file to your local repo folder\n2. Open Git Bash / CMD in that folder\n3. Run:\n   git add pkscreener_dashboard.html\n   git commit -m "Update scan results"\n   git push\n\nYour GitHub Pages URL will be:\nhttps://[your-username].github.io/[repo-name]/pkscreener_dashboard.html');
+function setMeta(d) {
+  document.getElementById('lastUpdated').textContent='Last scan: '+new Date().toLocaleTimeString('en-IN');
+  const iText = document.getElementById('idxSel').options[document.getElementById('idxSel').selectedIndex].text;
+  const sText = document.getElementById('scnSel').options[document.getElementById('scnSel').selectedIndex].text;
+  document.getElementById('stag').textContent=iText+' · '+sText;
+  document.getElementById('rmeta').textContent=(d.total||data.length)+' stocks · '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  if(d.market&&d.market.nifty){
+    document.getElementById('niftyVal').textContent=d.market.nifty.toLocaleString('en-IN',{minimumFractionDigits:2});
+    document.getElementById('sensexVal').textContent=d.market.sensex.toLocaleString('en-IN',{minimumFractionDigits:2});
+    const nc=d.market.niftyChg, sc2=d.market.sensexChg;
+    const ne=document.getElementById('niftyChg'), se=document.getElementById('sensexChg');
+    ne.textContent=(nc>=0?'+':'')+nc.toFixed(2)+'%'; ne.className='mpill-chg '+(nc>=0?'up':'dn');
+    se.textContent=(sc2>=0?'+':'')+sc2.toFixed(2)+'%'; se.className='mpill-chg '+(sc2>=0?'up':'dn');
+  }
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-updateExplanation();
+function triggerGitHub() {
+  window.open('https://github.com/VenkyHari98/screener-dashboard/actions','_blank');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+detectMode();
+updateExplain();
 updateLegend();
 </script>
 </body>
