@@ -138,6 +138,21 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"status":"ok","mode":"local"}).encode())
 
+        elif parsed.path in ('/', '/dashboard.html'):
+            html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard.html')
+            if os.path.exists(html_path):
+                with open(html_path, 'r', encoding='utf-8') as f:
+                    body = f.read().encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type','text/html; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b'dashboard.html not found')
+
         else:
             self.send_response(404)
             self.end_headers()
