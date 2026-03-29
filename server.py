@@ -42,7 +42,7 @@ def run_pkscreener(index, scan):
     print(f"[+] Running PKScreener: {option}")
     try:
         result = subprocess.run(
-            ["pkscreener", "--testbuild", "-o", option, "-a", "Y"],
+            [sys.executable, "-m", "pkscreener.pkscreenercli", "--testbuild", "-o", option, "-a", "Y"],
             capture_output=True, text=True, timeout=300
         )
         return result.stdout + result.stderr
