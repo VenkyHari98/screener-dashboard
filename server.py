@@ -20,12 +20,18 @@ import re
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timezone, timedelta
+import threading
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
 # Global error log storage
 LOGS = []
 MAX_LOGS = 100
+SCAN_LOCK = threading.Lock()
+
+
+class ThreadingHTTPServer(HTTPServer):
+    daemon_threads = True
 
 def log_event(level, message, details=""):
     """Log events to both console and memory."""
@@ -89,7 +95,7 @@ def run_pkscreener(index, scan):
     try:
         result = subprocess.run(
             [sys.executable, "-m", "pkscreener.pkscreenercli", "--testbuild", "-o", option, "-a", "Y"],
-            capture_output=True, text=True, timeout=300, cwd=os.path.dirname(os.path.abspath(__file__))
+            capture_output=True, text=True, timeout=120, cwd=os.path.dirname(os.path.abspath(__file__))
         )
         output = result.stdout + result.stderr
         if result.returncode != 0:
@@ -100,7 +106,7 @@ def run_pkscreener(index, scan):
             log_event("WARN", "PKScreener returned empty output")
         return output
     except subprocess.TimeoutExpired:
-        log_event("ERROR", "PKScreener scan timed out", "Timeout after 300 seconds")
+        log_event("ERROR", "PKScreener scan timed out", "Timeout after 120 seconds")
         return ""
     except Exception as e:
         log_event("ERROR", "PKScreener execution failed", str(e))
@@ -178,6 +184,20 @@ class Handler(BaseHTTPRequestHandler):
         params = parse_qs(parsed.query)
 
         if parsed.path == '/scan':
+            if not SCAN_LOCK.acquire(blocking=False):
+                body = json.dumps({
+                    "error": "A scan is already running. Please wait for it to finish.",
+                    "stocks": [],
+                    "total": 0,
+                }).encode()
+                self.send_response(429)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+
             index = params.get('index',['12'])[0]
             scan  = params.get('scan', ['7'])[0]
 
@@ -188,32 +208,35 @@ class Handler(BaseHTTPRequestHandler):
             }
             scan_type = scan_map.get(scan, 'SCAN')
 
-            raw    = run_pkscreener(index, scan)
-            stocks = parse_output(raw, scan_type)
-            market = get_market_data()
-            now    = datetime.now(IST)
+            try:
+                raw    = run_pkscreener(index, scan)
+                stocks = parse_output(raw, scan_type)
+                market = get_market_data()
+                now    = datetime.now(IST)
 
-            result = {
-                "timestamp": now.strftime("%d %b %Y %I:%M %p IST"),
-                "session":   "Pre-Market" if now.hour < 12 else "Post-Market",
-                "market":    market,
-                "stocks":    stocks,
-                "total":     len(stocks),
-                "buy_count": len([s for s in stocks if s["signal"]=="BUY"]),
-                "watch_count":len([s for s in stocks if s["signal"]=="WATCH"]),
-                "avoid_count":len([s for s in stocks if s["signal"]=="AVOID"]),
-                "errors": [l for l in LOGS if l["level"] in ("ERROR", "WARN")],
-                "debug_output": raw[:1500] if raw else "No output from PKScreener",
-                "all_logs": LOGS[-10:],
-            }
+                result = {
+                    "timestamp": now.strftime("%d %b %Y %I:%M %p IST"),
+                    "session":   "Pre-Market" if now.hour < 12 else "Post-Market",
+                    "market":    market,
+                    "stocks":    stocks,
+                    "total":     len(stocks),
+                    "buy_count": len([s for s in stocks if s["signal"]=="BUY"]),
+                    "watch_count":len([s for s in stocks if s["signal"]=="WATCH"]),
+                    "avoid_count":len([s for s in stocks if s["signal"]=="AVOID"]),
+                    "errors": [l for l in LOGS if l["level"] in ("ERROR", "WARN")],
+                    "debug_output": raw[:1500] if raw else "No output from PKScreener",
+                    "all_logs": LOGS[-10:],
+                }
 
-            body = json.dumps(result).encode()
-            self.send_response(200)
-            self.send_header('Content-Type','application/json')
-            self.send_header('Access-Control-Allow-Origin','*')
-            self.send_header('Content-Length', str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
+                body = json.dumps(result).encode()
+                self.send_response(200)
+                self.send_header('Content-Type','application/json')
+                self.send_header('Access-Control-Allow-Origin','*')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            finally:
+                SCAN_LOCK.release()
 
         elif parsed.path == '/logs':
             body = json.dumps({"logs": LOGS}).encode()
@@ -257,7 +280,7 @@ if __name__ == "__main__":
 ║     Unlimited scans · No GitHub Actions used     ║
 ╚══════════════════════════════════════════════════╝
 """)
-    server = HTTPServer(('localhost', port), Handler)
+    server = ThreadingHTTPServer(('localhost', port), Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -22,21 +22,13 @@ echo [+] Checking dependencies...
 pip install yfinance --quiet 2>nul
 pip install pkscreener --quiet 2>nul
 
-:: Start server in background
+:: Start server once (foreground) and open browser after a short delay.
 echo [+] Starting local server on http://localhost:5000 ...
-start /b python server.py
-
-:: Wait for server to be ready
-timeout /t 2 /nobreak >nul
-
-:: Open browser
-echo [+] Opening dashboard in browser...
-start http://localhost:5000/
+start "" cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:5000/"
 
 echo.
 echo  Dashboard is running at http://localhost:5000/
-echo  Press Ctrl+C or close this window to stop.
+echo  Press Ctrl+C in this window to stop.
 echo.
 
-:: Keep window open so server stays alive
 python server.py
