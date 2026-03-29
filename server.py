@@ -62,10 +62,34 @@ def get_market_data():
 def run_pkscreener(index, scan):
     option = f"X:{index}:{scan}"
     log_event("INFO", f"Running PKScreener scan: {option}")
+    
+    # Patch MenuOptions.py before running
+    try:
+        import site
+        from pathlib import Path
+        site_packages = site.getsitepackages()[0]
+        menu_file = os.path.join(site_packages, "pkscreener", "classes", "MenuOptions.py")
+        
+        if os.path.exists(menu_file):
+            with open(menu_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            
+            # Apply the patch if not already applied
+            if "self.is_subscription_enabled = bool(int(" in content and "# PATCHED" not in content:
+                patched = content.replace(
+                    "self.is_subscription_enabled = bool(int(PKEnvironment().SUBSCRIPTION_ENABLED))",
+                    "self.is_subscription_enabled = False  # PATCHED"
+                )
+                with open(menu_file, "w", encoding="utf-8") as f:
+                    f.write(patched)
+                log_event("INFO", "Applied MenuOptions.py patch")
+    except Exception as e:
+        log_event("WARN", "Failed to patch MenuOptions.py", str(e))
+    
     try:
         result = subprocess.run(
             [sys.executable, "-m", "pkscreener.pkscreenercli", "--testbuild", "-o", option, "-a", "Y"],
-            capture_output=True, text=True, timeout=300
+            capture_output=True, text=True, timeout=300, cwd=os.path.dirname(os.path.abspath(__file__))
         )
         output = result.stdout + result.stderr
         if result.returncode != 0:
