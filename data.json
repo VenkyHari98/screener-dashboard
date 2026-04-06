@@ -1,12 +1,12 @@
 {
-  "timestamp": "06 Apr 2026 10:48 AM IST",
+  "timestamp": "06 Apr 2026 04:41 PM IST",
   "date": "2026-04-06",
-  "session": "Pre-Market",
+  "session": "Post-Market",
   "market": {
-    "nifty": 22665.25,
-    "niftyChg": -0.15,
-    "sensex": 73002.44,
-    "sensexChg": -0.43
+    "nifty": 22968.25,
+    "niftyChg": 1.18,
+    "sensex": 74106.85,
+    "sensexChg": 1.07
   },
   "scan_summary": [
     {
