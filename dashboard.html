@@ -4365,6 +4365,82 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
+
+// ─── INJECTED BY GITHUB ACTIONS ──────────────────────────────────────────────
+const LIVE_DATA = {
+  "timestamp": "01 May 2026 11:40 AM IST",
+  "date": "2026-05-01",
+  "session": "Pre-Market",
+  "market": {
+    "nifty": 23997.55,
+    "niftyChg": -0.69,
+    "sensex": 76913.5,
+    "sensexChg": -0.75
+  },
+  "scan_summary": [
+    {
+      "label": "Breakout Stocks",
+      "type": "BREAKOUT",
+      "count": 0
+    },
+    {
+      "label": "5 EMA Intraday",
+      "type": "EMA",
+      "count": 0
+    },
+    {
+      "label": "Confluence BTST",
+      "type": "BTST",
+      "count": 0
+    },
+    {
+      "label": "Volume Surge",
+      "type": "VOLUME",
+      "count": 0
+    }
+  ],
+  "stocks": [],
+  "total": 0,
+  "buy_count": 0,
+  "watch_count": 0,
+  "avoid_count": 0
+};
+
+// Override SAMPLE_DATA with live data on page load
+window.addEventListener('DOMContentLoaded', function() {
+  // Update market values
+  if (LIVE_DATA.market && LIVE_DATA.market.nifty) {
+    document.getElementById('niftyVal').textContent  = LIVE_DATA.market.nifty.toLocaleString('en-IN', {minimumFractionDigits:2});
+    document.getElementById('sensexVal').textContent = LIVE_DATA.market.sensex.toLocaleString('en-IN', {minimumFractionDigits:2});
+    const nChg = LIVE_DATA.market.niftyChg;
+    const sChg = LIVE_DATA.market.sensexChg;
+    document.getElementById('niftyChg').textContent  = (nChg >= 0 ? '+' : '') + nChg.toFixed(2) + '%';
+    document.getElementById('sensexChg').textContent = (sChg >= 0 ? '+' : '') + sChg.toFixed(2) + '%';
+    document.getElementById('niftyChg').style.color  = nChg >= 0 ? 'var(--bull)' : 'var(--bear)';
+    document.getElementById('sensexChg').style.color = sChg >= 0 ? 'var(--bull)' : 'var(--bear)';
+  }
+
+  // Update last updated timestamp
+  document.getElementById('lastUpdated').textContent = 'Last scan: ' + LIVE_DATA.timestamp;
+
+  // Add session badge
+  const sessionBadge = document.createElement('span');
+  sessionBadge.textContent = LIVE_DATA.session;
+  sessionBadge.style.cssText = 'font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(0,212,170,0.15);color:var(--accent);font-family:var(--font-mono);margin-left:8px;';
+  document.getElementById('lastUpdated').appendChild(sessionBadge);
+
+  // Load stock data
+  currentData = LIVE_DATA.stocks;
+  renderTable(currentData);
+
+  // Update scan tag
+  const scanTags = LIVE_DATA.scan_summary.map(s => s.label + ' (' + s.count + ')').join(' · ');
+  document.getElementById('scanTag').textContent = scanTags;
+  document.getElementById('resultsMeta').textContent =
+    LIVE_DATA.total + ' stocks · ' + LIVE_DATA.date;
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 detectMode();
 updateExplain();
