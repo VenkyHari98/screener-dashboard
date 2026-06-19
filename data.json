@@ -1,12 +1,12 @@
 {
-  "timestamp": "19 Jun 2026 01:57 PM IST",
+  "timestamp": "19 Jun 2026 07:17 PM IST",
   "date": "2026-06-19",
   "session": "Post-Market",
   "market": {
-    "nifty": 23962.35,
-    "niftyChg": -0.9,
-    "sensex": 76607.31,
-    "sensexChg": -1.04
+    "nifty": 24013.1,
+    "niftyChg": -0.69,
+    "sensex": 76802.9,
+    "sensexChg": -0.78
   },
   "scan_summary": [
     {
