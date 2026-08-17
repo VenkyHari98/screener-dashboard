@@ -1,10 +1,10 @@
 {
-  "timestamp": "14 Aug 2026 04:37 PM IST",
-  "date": "2026-08-14",
-  "session": "Post-Market",
+  "timestamp": "17 Aug 2026 09:13 AM IST",
+  "date": "2026-08-17",
+  "session": "Pre-Market",
   "market": {
-    "nifty": 24366.0,
-    "niftyChg": -0.12,
+    "nifty": 24343.45,
+    "niftyChg": -0.21,
     "sensex": 78009.25,
     "sensexChg": -0.09
   },
