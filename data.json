@@ -1,12 +1,12 @@
 {
-  "timestamp": "05 Nov 2026 03:39 PM IST",
+  "timestamp": "05 Nov 2026 11:28 PM IST",
   "date": "2026-11-05",
   "session": "Post-Market",
   "market": {
     "nifty": 24536.6,
     "niftyChg": 2.4,
-    "sensex": 79233.19,
-    "sensexChg": 2.5
+    "sensex": 79310.01,
+    "sensexChg": 2.6
   },
   "scan_summary": [
     {
