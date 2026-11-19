@@ -1,12 +1,12 @@
 {
-  "timestamp": "19 Nov 2026 12:19 AM IST",
+  "timestamp": "19 Nov 2026 04:29 PM IST",
   "date": "2026-11-19",
-  "session": "Pre-Market",
+  "session": "Post-Market",
   "market": {
-    "nifty": 25227.95,
-    "niftyChg": -0.63,
-    "sensex": 82031.81,
-    "sensexChg": -0.61
+    "nifty": 25514.3,
+    "niftyChg": 1.14,
+    "sensex": 83021.75,
+    "sensexChg": 1.21
   },
   "scan_summary": [
     {
